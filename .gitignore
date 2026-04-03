@@ -1,0 +1,15 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Backups
+*_backup.png
+*_v1.png
+*_v2.png
+*_v3.png
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/

@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Second Hash — Refabricated Mining Hardware</title>
+<link rel="icon" type="image/png" href="images/SH_Logo.png">
+<meta property="og:title" content="Second Hash — Refabricated Mining Hardware">
+<meta property="og:description" content="We take retired HashCash miners and rebuild them into tuned, tested machines that earn again. No new silicon. No waste.">
+<meta property="og:image" content="images/SH-X1_Overhaul.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Second Hash — Refabricated Mining Hardware">
+<meta name="twitter:description" content="Every miner deserves a second hash. Refabricated mining hardware for the Avalanche ecosystem.">
+<meta name="twitter:image" content="images/SH-X1_Overhaul.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0c0f;
+  --bg-secondary: #111318;
+  --bg-card: #161920;
+  --bg-highlight: #1c1f28;
+  --border: #252830;
+  --border-accent: #3a3f4c;
+  --text-primary: #e8e9ec;
+  --text-secondary: #8b8f9a;
+  --text-muted: #5c6070;
+  --accent: #d4924a;
+  --accent-dim: #9e6a30;
+  --accent-glow: rgba(212, 146, 74, 0.15);
+  --green: #3ddc84;
+  --red: #ff5252;
+  --mono: 'Space Mono', monospace;
+  --sans: 'Inter', -apple-system, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Navigation */
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(10, 12, 15, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+  padding: 0 2rem;
+}
+
+nav .nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+nav .logo {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+  text-decoration: none;
+}
+
+nav .logo span { color: var(--text-secondary); }
+
+nav .nav-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+}
+
+nav .nav-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: color 0.2s;
+  letter-spacing: 0.02em;
+}
+
+nav .nav-links a:hover { color: var(--text-primary); }
+
+nav .cta-btn {
+  background: var(--accent);
+  color: var(--bg-primary);
+  padding: 0.45rem 1.2rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+nav .cta-btn:hover { opacity: 0.85; }
+
+/* Sections */
+section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6rem 2rem;
+}
+
+/* Hero */
+.hero {
+  padding-top: 10rem;
+  padding-bottom: 6rem;
+}
+
+.hero-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  padding: 0.3rem 0.8rem;
+  border-radius: 2px;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  font-size: 3.2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  max-width: 700px;
+}
+
+.hero p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  max-width: 560px;
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg-primary);
+  padding: 0.7rem 1.8rem;
+  border-radius: 4px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:hover { opacity: 0.85; }
+
+.btn-ghost {
+  border: 1px solid var(--border-accent);
+  color: var(--text-secondary);
+  padding: 0.7rem 1.8rem;
+  border-radius: 4px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s;
+}
+
+.btn-ghost:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+/* Stats Bar */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4rem;
+}
+
+.stat-item {
+  background: var(--bg-card);
+  padding: 1.5rem 1.8rem;
+}
+
+.stat-value {
+  font-family: var(--mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-value .unit {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 0.3rem;
+}
+
+/* Section Headers */
+.section-label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.8rem;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+}
+
+.section-desc {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  max-width: 600px;
+  margin-bottom: 3rem;
+}
+
+/* Divider */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0 auto;
+  max-width: 1200px;
+}
+
+/* Products */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.product-card {
+  background: var(--bg-card);
+  padding: 0;
+  overflow: hidden;
+}
+
+.product-image {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #0d0e12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-image .placeholder {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 1rem;
+}
+
+.product-info {
+  padding: 2rem;
+}
+
+.product-tier {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.product-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.product-codename {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--accent);
+  margin-bottom: 1.2rem;
+}
+
+.product-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  min-height: 80px;
+}
+
+.product-specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.spec-item .spec-val {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.spec-item .spec-key {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Boost Modules */
+.boost-intro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+  align-items: start;
+}
+
+.boost-intro-text h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.boost-intro-text p {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+.boost-warning {
+  background: rgba(255, 82, 82, 0.08);
+  border: 1px solid rgba(255, 82, 82, 0.2);
+  border-radius: 4px;
+  padding: 1rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--red);
+  margin-top: 1rem;
+}
+
+.boost-warning strong {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.boost-mechanic {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.boost-mechanic .bm-step {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.2rem 1.5rem;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+.boost-mechanic .bm-step:last-child { border-bottom: none; }
+
+.bm-icon {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  background: var(--accent-glow);
+  padding: 0.4rem 0.6rem;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.bm-arrow {
+  text-align: center;
+  padding: 0.6rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.boost-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.boost-card {
+  background: var(--bg-card);
+  padding: 0;
+  overflow: hidden;
+}
+
+.boost-image {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #0d0e12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.boost-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.boost-info {
+  padding: 2rem 1.8rem;
+}
+
+.boost-card-tier {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.boost-card-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.boost-card-code {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--green);
+  margin-bottom: 1rem;
+}
+
+.boost-card-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  min-height: 60px;
+}
+
+.boost-effect {
+  border: 1px dashed var(--border-accent);
+  border-radius: 3px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.boost-effect-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.3rem;
+}
+
+.boost-effect-val {
+  font-family: var(--mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.boost-source {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.boost-source span {
+  color: var(--text-secondary);
+}
+
+/* Roadmap / Phase 2 */
+.roadmap-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.phase-label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.roadmap-coming {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 1.2rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+  letter-spacing: 0.04em;
+}
+
+.roadmap-products-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.roadmap-boosts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.roadmap-card {
+  background: var(--bg-card);
+  padding: 0;
+  overflow: hidden;
+}
+
+.roadmap-card .product-image {
+  opacity: 0.85;
+}
+
+.roadmap-card .product-info {
+  padding: 1.5rem 2rem;
+}
+
+.roadmap-card .product-name {
+  font-size: 1.2rem;
+}
+
+.roadmap-card .product-desc {
+  min-height: auto;
+  margin-bottom: 1rem;
+}
+
+.roadmap-card .spec-preview {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.roadmap-card .spec-preview .spec-item .spec-val {
+  font-size: 0.95rem;
+}
+
+.efficiency-map {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-card);
+  padding: 2rem;
+  margin-top: 3rem;
+}
+
+.efficiency-map h4 {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1.5rem;
+}
+
+.eff-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.eff-bar-label {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  width: 120px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.eff-bar-track {
+  flex: 1;
+  height: 24px;
+  background: var(--bg-highlight);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.eff-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+}
+
+.eff-bar-fill span {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--bg-primary);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.eff-bar-fill.phase1 {
+  background: var(--accent-dim);
+}
+
+.eff-bar-fill.phase2 {
+  background: var(--accent);
+}
+
+.eff-legend {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.eff-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.eff-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+@media (max-width: 768px) {
+  .roadmap-products-grid { grid-template-columns: 1fr; }
+  .roadmap-boosts-grid { grid-template-columns: 1fr; }
+  .eff-bar-label { width: 80px; font-size: 0.68rem; }
+}
+
+/* Comparison Table */
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem;
+}
+
+.comparison-table th {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: left;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 500;
+}
+
+.comparison-table td {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.comparison-table td:first-child {
+  font-weight: 600;
+}
+
+.comparison-table tr:last-child td {
+  border-bottom: none;
+}
+
+.comparison-table .mono {
+  font-family: var(--mono);
+  font-size: 0.88rem;
+}
+
+.comparison-table .highlight {
+  color: var(--accent);
+}
+
+.table-wrap {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+/* Trade-In Section */
+.tradein-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+.tradein-flow {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.flow-step {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 1.2rem;
+  align-items: flex-start;
+  background: var(--bg-card);
+}
+
+.flow-step:last-child { border-bottom: none; }
+
+.flow-num {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+  background: var(--accent-glow);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.flow-content h4 {
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.flow-content p {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.tradein-info h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.tradein-info p {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+
+/* Recipe Cards */
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 3rem;
+}
+
+.recipe-card {
+  background: var(--bg-card);
+  padding: 1.8rem 1.5rem;
+}
+
+.recipe-card h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.recipe-card .recipe-sub {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.recipe-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.recipe-item .qty {
+  font-family: var(--mono);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+}
+
+.recipe-divider {
+  border-top: 1px dashed var(--border-accent);
+  margin: 0.6rem 0;
+}
+
+.recipe-result {
+  font-weight: 600;
+  color: var(--text-primary) !important;
+}
+
+/* Impact Section */
+.impact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.impact-card {
+  background: var(--bg-card);
+  padding: 2rem;
+}
+
+.impact-icon {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  background: var(--accent-glow);
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 2px;
+  margin-bottom: 1rem;
+  letter-spacing: 0.05em;
+}
+
+.impact-card h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.impact-card p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* Story Section */
+.story-content {
+  max-width: 680px;
+}
+
+.story-content p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.story-content p:first-of-type {
+  font-size: 1.05rem;
+  color: var(--text-primary);
+}
+
+.story-sig {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Footer */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+footer .footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+footer p {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+footer a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+footer a:hover { color: var(--text-primary); }
+
+footer .footer-links {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+footer .footer-links a {
+  font-size: 0.78rem;
+}
+
+/* Hero 2-column layout */
+.hero-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+.hero-text { /* left column */ }
+
+.hero-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-visual img {
+  width: 100%;
+  max-width: 480px;
+  filter: drop-shadow(0 0 40px rgba(212, 146, 74, 0.2));
+  animation: heroFloat 6s ease-in-out infinite;
+}
+
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+/* Hero accent text gradient */
+.hero h1 em {
+  font-style: normal;
+  background: linear-gradient(135deg, #d4924a 0%, #f0c878 50%, #d4924a 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 200% center; }
+}
+
+/* Section title size bump */
+.section-title {
+  font-size: 2.4rem;
+}
+
+/* Scroll fade-in animation */
+.fade-section {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.fade-section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Product/Boost card hover */
+.product-card,
+.boost-card,
+.roadmap-card,
+.impact-card,
+.recipe-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.product-card:hover,
+.boost-card:hover,
+.roadmap-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(212, 146, 74, 0.12);
+  z-index: 2;
+}
+
+.impact-card:hover,
+.recipe-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(212, 146, 74, 0.08);
+}
+
+/* Phase 2 COMING SOON overlay on cards */
+.roadmap-card .product-image,
+.roadmap-card .boost-image {
+  position: relative;
+}
+
+.coming-soon-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  color: var(--accent);
+  background: rgba(10, 12, 15, 0.85);
+  border: 1px solid var(--accent-dim);
+  padding: 0.2rem 0.5rem;
+  border-radius: 2px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+  z-index: 2;
+}
+
+/* Phase 3 teaser */
+.phase3-teaser {
+  margin-top: 2.5rem;
+  padding: 1.5rem 2rem;
+  border: 1px dashed var(--border-accent);
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  text-align: center;
+}
+
+.phase3-teaser .phase-label {
+  margin-bottom: 0.5rem;
+}
+
+.phase3-teaser h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+}
+
+.phase3-teaser p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-family: var(--mono);
+}
+
+/* Roadmap images — now pre-processed to square, use standard cover */
+
+/* Hamburger menu */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  z-index: 101;
+}
+
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text-secondary);
+  margin: 5px 0;
+  transition: all 0.3s ease;
+  border-radius: 1px;
+}
+
+.hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+nav .nav-links.mobile-open {
+  display: flex;
+}
+
+/* Back to top button */
+.back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 44px;
+  height: 44px;
+  background: var(--accent);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s, transform 0.2s;
+  z-index: 99;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.back-to-top.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.back-to-top:hover {
+  transform: translateY(-2px);
+}
+
+/* Footer logo */
+.footer-logo {
+  margin-bottom: 1.2rem;
+}
+
+.footer-logo img {
+  height: 48px;
+  width: 48px;
+  object-fit: contain;
+  opacity: 0.7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero h1 { font-size: 2rem; }
+  .hero-layout { grid-template-columns: 1fr; }
+  .hero-visual { order: -1; }
+  .hero-visual img { max-width: 280px; }
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .products-grid { grid-template-columns: 1fr; }
+  .tradein-grid { grid-template-columns: 1fr; }
+  .recipe-grid { grid-template-columns: 1fr; }
+  .impact-grid { grid-template-columns: 1fr; }
+  .boost-cards { grid-template-columns: 1fr; }
+  .section-title { font-size: 1.8rem; }
+  nav .nav-links {
+    display: none;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: rgba(10, 12, 15, 0.98);
+    flex-direction: column;
+    padding: 1.5rem 2rem;
+    gap: 1.2rem;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+  }
+  nav .nav-links.mobile-open {
+    display: flex;
+  }
+  .hamburger {
+    display: block;
+  }
+  nav .cta-btn { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo"><img src="images/SH_Logo.png" alt="SH" style="height:32px; width:32px; object-fit:contain; vertical-align:middle; margin-right:8px;">Second Hash <span>///</span></a>
+    <ul class="nav-links">
+      <li><a href="#products">Miners</a></li>
+      <li><a href="#boost">Boost Modules</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+      <li><a href="#specs">Specifications</a></li>
+      <li><a href="#tradein">Trade-In</a></li>
+      <li><a href="#impact">Impact</a></li>
+      <li><a href="#story">About</a></li>
+    </ul>
+    <a href="#tradein" class="cta-btn">Trade-In Program</a>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-layout">
+    <div class="hero-text">
+      <div class="hero-tag">Refabricated Mining Hardware</div>
+      <h1>Every miner deserves a <em>second hash.</em></h1>
+      <p>We take retired HashCash miners — the ones gathering dust in your wallet — and rebuild them into tuned, tested machines that earn again. No new silicon. No waste. Just better engineering.</p>
+      <div class="hero-actions">
+        <a href="#products" class="btn-primary">View the Lineup</a>
+        <a href="#tradein" class="btn-ghost">How Trade-In Works</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <img src="images/SH-X1_Overhaul.png" alt="SH-X1 Overhaul — Flagship Refabricated Miner">
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-value">11 <span class="unit">products</span></div>
+      <div class="stat-label">5 Miners + 5 Boosts + 1 Flagship</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">0.824 <span class="unit">MH/W</span></div>
+      <div class="stat-label">Peak Efficiency (Phase 2)</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">100% <span class="unit">salvage</span></div>
+      <div class="stat-label">Recycled Components</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">0 <span class="unit">new fab</span></div>
+      <div class="stat-label">Virgin Silicon Used</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Products -->
+<section id="products" class="fade-section">
+  <div class="section-label">Product Lineup</div>
+  <div class="section-title">The SH Series</div>
+  <div class="section-desc">Three tiers. One principle: nothing gets thrown away if it can still compute.</div>
+
+  <div class="products-grid">
+    <div class="product-card">
+      <div class="product-image">
+        <!-- Replace src with actual image path: SH-R1_Reclaim.png -->
+        <img src="images/SH-R1_Reclaim.png" alt="SH-R1 Reclaim" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="placeholder" style="display:none">[ SH-R1 Image ]</div>
+      </div>
+      <div class="product-info">
+      <div class="product-tier">Entry-Level Refab</div>
+      <div class="product-name">SH-R1</div>
+      <div class="product-codename">"Reclaim"</div>
+      <div class="product-desc">Built from salvaged CPU-class components. The board is stripped, retested, and reassembled with optimized power routing. Ideal for Lv.1 operators who want to squeeze more hash from a tight power budget.</div>
+      <div class="product-specs">
+        <div class="spec-item">
+          <div class="spec-val">40 <span class="unit">MH/s</span></div>
+          <div class="spec-key">Hashrate</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-val">150 <span class="unit">W</span></div>
+          <div class="spec-key">Power</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-val">0.267 <span class="unit">MH/W</span></div>
+          <div class="spec-key">Efficiency</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-val">800 <span class="unit">hCASH</span></div>
+          <div class="spec-key">Assembly Cost</div>
+        </div>
+      </div>
+      </div><!-- /product-info -->
+    </div>
+
+    <div class="product-card">
+      <div class="product-image">
+        <img src="images/SH-R2_Reforge.png" alt="SH-R2 Reforge" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="placeholder" style="display:none">[ SH-R2 Image ]</div>
+      </div>
+      <div class="product-info">
+      <div class="product-tier">Mid-Range Refab</div>
+      <div class="product-name">SH-R2</div>
+      <div class="product-codename">"Reforge"</div>
+      <div class="product-desc">Reconstructed from first-generation GPU boards. The original dies are reballed, voltage regulators are replaced, and the power delivery network is rerouted for sustained mid-load operation. The workhorse.</div>
+      <div class="product-specs">
+        <div class="spec-item">
+          <div class="spec-val">120 <span class="unit">MH/s</span></div>
+          <div class="spec-key">Hashrate</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-val">400 <span class="unit">W</span></div>
+          <div class="spec-key">Power</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-val">0.300 <span class="unit">MH/W</span></div>
+          <div class="spec-key">Efficiency</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-val">1,500 <span class="unit">hCASH</span></div>
+          <div class="spec-key">Assembly Cost</div>
+        </div>
+      </div>
+      </div><!-- /product-info -->
+    </div>
+
+    <div class="product-card">
+      <div class="product-image">
+        <img src="images/SH-X1_Overhaul.png" alt="SH-X1 Overhaul" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="placeholder" style="display:none">[ SH-X1 Image ]</div>
+      </div>
+      <div class="product-info">
+      <div class="product-tier">Flagship Refab</div>
+      <div class="product-name">SH-X1</div>
+      <div class="product-codename">"Overhaul"</div>
+      <div class="product-desc">A full teardown-and-rebuild from multi-vendor salvage. GPU and ASIC components are cross-matched, tested under load, and assembled into a single unified compute module. Our most ambitious build.</div>
+      <div class="product-specs">
+        <div class="spec-item">
+          <div class="spec-val">300 <span class="unit">MH/s</span></div>
+          <div class="spec-key">Hashrate</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-val">600 <span class="unit">W</span></div>
+          <div class="spec-key">Power</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-val">0.500 <span class="unit">MH/W</span></div>
+          <div class="spec-key">Efficiency</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-val">3,000 <span class="unit">hCASH</span></div>
+          <div class="spec-key">Assembly Cost</div>
+        </div>
+      </div>
+      </div><!-- /product-info -->
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Boost Modules -->
+<section id="boost" class="fade-section">
+  <div class="section-label">Boost Modules</div>
+  <div class="section-title">Upgrade what you already own.</div>
+  <div class="section-desc">Salvaged components repackaged as efficiency boosters. Attach one to any miner in your facility for a permanent performance uplift — until you remove it.</div>
+
+  <div class="boost-intro">
+    <div class="boost-intro-text">
+      <h3>How Boost Modules Work</h3>
+      <p>A Boost Module is a small add-on component crafted from retired miner parts. It attaches directly to an existing miner in your facility grid, improving that miner's effective hashrate or power efficiency without taking up a separate slot.</p>
+      <p>Modules remain active as long as they stay attached. You can remove a boost at any time — but removal permanently destroys the module. The components are consumed during detachment and cannot be recovered.</p>
+      <p>This mechanic creates a meaningful strategic decision: boost now and commit, or hold the module for a better deployment later.</p>
+      <div class="boost-warning">
+        <strong>Non-Reversible on Removal</strong>
+        Detaching a Boost Module from a miner permanently burns the module NFT. This is by design — it creates sustained deflationary pressure on the network's NFT supply while rewarding committed operators.
+      </div>
+    </div>
+    <div class="boost-mechanic">
+      <div class="bm-step">
+        <div class="bm-icon">CRAFT</div>
+        <span>Trade in retired miners + pay assembly fee</span>
+      </div>
+      <div class="bm-arrow">&#8595;</div>
+      <div class="bm-step">
+        <div class="bm-icon">ATTACH</div>
+        <span>Place Boost Module on any miner in your facility</span>
+      </div>
+      <div class="bm-arrow">&#8595;</div>
+      <div class="bm-step">
+        <div class="bm-icon">BOOST</div>
+        <span>Miner performance is improved while module is attached</span>
+      </div>
+      <div class="bm-arrow">&#8595;</div>
+      <div class="bm-step" style="opacity: 0.6;">
+        <div class="bm-icon" style="background: rgba(255,82,82,0.12); color: var(--red);">REMOVE</div>
+        <span style="color: var(--text-muted);">Module is permanently burned — hashrate bonus is lost</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="boost-cards">
+    <div class="boost-card">
+      <div class="boost-image">
+        <img src="images/SH-B1_Patch.png" alt="SH-B1 Patch">
+      </div>
+      <div class="boost-info">
+      <div class="boost-card-tier">Efficiency Boost</div>
+      <div class="boost-card-name">SH-B1</div>
+      <div class="boost-card-code">"Patch"</div>
+      <div class="boost-card-desc">Minor power optimization from salvaged voltage regulators. Reduces the target miner's power draw without affecting hashrate.</div>
+      <div class="boost-effect">
+        <div class="boost-effect-label">Effect on Attached Miner</div>
+        <div class="boost-effect-val">-15% Power Draw</div>
+      </div>
+      <div class="boost-source">Source: <span>2× USB Miner or 1× Home Brew CPU</span></div>
+      <div class="boost-source">Fee: <span>300 hCASH</span></div>
+      </div>
+    </div>
+
+    <div class="boost-card">
+      <div class="boost-image">
+        <img src="images/SH-B2_Splice.png" alt="SH-B2 Splice">
+      </div>
+      <div class="boost-info">
+      <div class="boost-card-tier">Hashrate Boost</div>
+      <div class="boost-card-name">SH-B2</div>
+      <div class="boost-card-code">"Splice"</div>
+      <div class="boost-card-desc">A supplementary compute die harvested from a retired GPU, wired into the target miner's existing hash pipeline to increase raw throughput.</div>
+      <div class="boost-effect">
+        <div class="boost-effect-label">Effect on Attached Miner</div>
+        <div class="boost-effect-val">+10% Hashrate</div>
+      </div>
+      <div class="boost-source">Source: <span>1× RedDragon or 1× Lightning G1</span></div>
+      <div class="boost-source">Fee: <span>600 hCASH</span></div>
+      </div>
+    </div>
+
+    <div class="boost-card">
+      <div class="boost-image">
+        <img src="images/SH-B3_Overclock.png" alt="SH-B3 Overclock">
+      </div>
+      <div class="boost-info">
+      <div class="boost-card-tier">Dual Boost</div>
+      <div class="boost-card-name">SH-B3</div>
+      <div class="boost-card-code">"Overclock"</div>
+      <div class="boost-card-desc">Full-spectrum performance upgrade. Combines power optimization and hash acceleration from multiple salvaged components into a single module.</div>
+      <div class="boost-effect">
+        <div class="boost-effect-label">Effect on Attached Miner</div>
+        <div class="boost-effect-val">+8% Hash / -10% Power</div>
+      </div>
+      <div class="boost-source">Source: <span>1× GPU-tier + 1× CPU-tier miner</span></div>
+      <div class="boost-source">Fee: <span>1,000 hCASH</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Phase 2 Roadmap -->
+<section id="roadmap" class="fade-section">
+  <div class="section-label">Roadmap — Phase 2</div>
+  <div class="section-title">The next generation is already in the workshop.</div>
+  <div class="section-desc">As halvings progress and Tier B miners (0.2–0.45 MH/W) retire, Second Hash scales up — rebuilding mid-generation hardware into Tier A–class machines.</div>
+
+  <div class="roadmap-badge">Detailed specs coming soon</div>
+
+  <!-- Phase 2 Miners -->
+  <div style="margin-bottom: 0.8rem;"><span class="phase-label">Phase 2 Miners</span></div>
+  <div class="roadmap-products-grid">
+    <div class="roadmap-card">
+      <div class="product-image">
+        <div class="coming-soon-badge">Phase 2</div>
+        <img src="images/SH-R3_Refit.png" alt="SH-R3 Refit" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="placeholder" style="display:none">[ SH-R3 Image ]</div>
+      </div>
+      <div class="product-info">
+        <div class="product-tier">ASIC Refabrication</div>
+        <div class="product-name">SH-R3</div>
+        <div class="product-codename">"Refit"</div>
+        <div class="product-desc">Rebuilt from salvaged HashTech ASIC components. High-density chips re-soldered and optimized for sustained throughput.</div>
+        <div class="spec-preview">
+          <div class="spec-item">
+            <div class="spec-val">250 <span class="unit">MH/s</span></div>
+            <div class="spec-key">Hashrate</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-val">0.625 <span class="unit">MH/W</span></div>
+            <div class="spec-key">Efficiency</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="roadmap-card">
+      <div class="product-image">
+        <div class="coming-soon-badge">Phase 2</div>
+        <img src="images/SH-R4_Fuse.png" alt="SH-R4 Fuse" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="placeholder" style="display:none">[ SH-R4 Image ]</div>
+      </div>
+      <div class="product-info">
+        <div class="product-tier">Dual-GPU Integration</div>
+        <div class="product-name">SH-R4</div>
+        <div class="product-codename">"Fuse"</div>
+        <div class="product-desc">Plasma Systems and Lightning GPU cores fused into a single dual-GPU open-frame rig. Two vendors, one machine.</div>
+        <div class="spec-preview">
+          <div class="spec-item">
+            <div class="spec-val">400 <span class="unit">MH/s</span></div>
+            <div class="spec-key">Hashrate</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-val">0.667 <span class="unit">MH/W</span></div>
+            <div class="spec-key">Efficiency</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="roadmap-card">
+      <div class="product-image">
+        <div class="coming-soon-badge">Phase 2</div>
+        <img src="images/SH-X2_Apex.png" alt="SH-X2 Apex" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="placeholder" style="display:none">[ SH-X2 Image ]</div>
+      </div>
+      <div class="product-info">
+        <div class="product-tier">Multi-Vendor Flagship</div>
+        <div class="product-name">SH-X2</div>
+        <div class="product-codename">"Apex"</div>
+        <div class="product-desc">The pinnacle of refabrication — the best components from RedDragon, HashTech, and Ennee, rebuilt into one ultimate rig.</div>
+        <div class="spec-preview">
+          <div class="spec-item">
+            <div class="spec-val">700 <span class="unit">MH/s</span></div>
+            <div class="spec-key">Hashrate</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-val">0.824 <span class="unit">MH/W</span></div>
+            <div class="spec-key">Efficiency</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2 Boost Modules -->
+  <div style="margin-bottom: 0.8rem; margin-top: 2rem;"><span class="phase-label">Phase 2 Boost Modules</span></div>
+  <div class="roadmap-boosts-grid">
+    <div class="roadmap-card">
+      <div class="boost-image">
+        <div class="coming-soon-badge">Phase 2</div>
+        <img src="images/SH-B4_Surge.png" alt="SH-B4 Surge" onerror="this.style.display='none'">
+      </div>
+      <div class="product-info">
+        <div class="product-tier">High-Power Hash Boost</div>
+        <div class="product-name">SH-B4</div>
+        <div class="product-codename" style="color: var(--green);">"Surge"</div>
+        <div class="product-desc">Advanced hashrate booster built from mid-generation GPU dies. The big brother of B2 Splice.</div>
+        <div class="boost-effect">
+          <div class="boost-effect-label">Projected Effect</div>
+          <div class="boost-effect-val">+20% Hashrate</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="roadmap-card">
+      <div class="boost-image">
+        <div class="coming-soon-badge">Phase 2</div>
+        <img src="images/SH-B5_Regulate.png" alt="SH-B5 Regulate" onerror="this.style.display='none'">
+      </div>
+      <div class="product-info">
+        <div class="product-tier">High-Efficiency Power Module</div>
+        <div class="product-name">SH-B5</div>
+        <div class="product-codename" style="color: var(--green);">"Regulate"</div>
+        <div class="product-desc">Precision power regulation module using salvaged ASIC power circuits. The advanced successor to B1 Patch.</div>
+        <div class="boost-effect">
+          <div class="boost-effect-label">Projected Effect</div>
+          <div class="boost-effect-val">-25% Power Draw</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="roadmap-coming">Full specifications, trade-in recipes, and pricing will be announced after Phase 1 launch.</div>
+
+  <!-- Efficiency Progression Map -->
+  <div class="efficiency-map">
+    <h4>Efficiency Progression</h4>
+    <div class="eff-bar-row">
+      <div class="eff-bar-label">R1 Reclaim</div>
+      <div class="eff-bar-track"><div class="eff-bar-fill phase1" style="width:32.4%"><span>0.267</span></div></div>
+    </div>
+    <div class="eff-bar-row">
+      <div class="eff-bar-label">R2 Reforge</div>
+      <div class="eff-bar-track"><div class="eff-bar-fill phase1" style="width:36.4%"><span>0.300</span></div></div>
+    </div>
+    <div class="eff-bar-row">
+      <div class="eff-bar-label">X1 Overhaul</div>
+      <div class="eff-bar-track"><div class="eff-bar-fill phase1" style="width:60.7%"><span>0.500</span></div></div>
+    </div>
+    <div class="eff-bar-row">
+      <div class="eff-bar-label">R3 Refit</div>
+      <div class="eff-bar-track"><div class="eff-bar-fill phase2" style="width:75.8%"><span>0.625</span></div></div>
+    </div>
+    <div class="eff-bar-row">
+      <div class="eff-bar-label">R4 Fuse</div>
+      <div class="eff-bar-track"><div class="eff-bar-fill phase2" style="width:80.9%"><span>0.667</span></div></div>
+    </div>
+    <div class="eff-bar-row">
+      <div class="eff-bar-label">X2 Apex</div>
+      <div class="eff-bar-track"><div class="eff-bar-fill phase2" style="width:100%"><span>0.824</span></div></div>
+    </div>
+    <div class="eff-legend">
+      <div class="eff-legend-item"><div class="eff-legend-dot" style="background:var(--accent-dim)"></div> Phase 1 — Tier C Salvage</div>
+      <div class="eff-legend-item"><div class="eff-legend-dot" style="background:var(--accent)"></div> Phase 2 — Tier B Salvage</div>
+    </div>
+  </div>
+
+  <!-- Phase 3 Teaser -->
+  <div class="phase3-teaser">
+    <div class="phase-label">Phase 3 — Vision</div>
+    <h4>SH-X3 "Zenith" &amp; SH-B6 "Transcend"</h4>
+    <p>Target: 1.0–1.2 MH/W /// The theoretical limit of refabrication.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Specifications -->
+<section id="specs" class="fade-section">
+  <div class="section-label">Specifications</div>
+  <div class="section-title">Platform Comparison</div>
+  <div class="section-desc">Side-by-side specifications for every model in the SH lineup.</div>
+
+  <div class="table-wrap">
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Specification</th>
+          <th>SH-R1 "Reclaim"</th>
+          <th>SH-R2 "Reforge"</th>
+          <th>SH-X1 "Overhaul"</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Hashrate</td>
+          <td class="mono">40 MH/s</td>
+          <td class="mono">120 MH/s</td>
+          <td class="mono highlight">300 MH/s</td>
+        </tr>
+        <tr>
+          <td>Power Consumption</td>
+          <td class="mono">150 W</td>
+          <td class="mono">400 W</td>
+          <td class="mono">600 W</td>
+        </tr>
+        <tr>
+          <td>Efficiency</td>
+          <td class="mono">0.267 MH/W</td>
+          <td class="mono">0.300 MH/W</td>
+          <td class="mono highlight">0.500 MH/W</td>
+        </tr>
+        <tr>
+          <td>Source Components</td>
+          <td>CPU-class salvage</td>
+          <td>GPU Gen-1 salvage</td>
+          <td>Multi-vendor cross-match</td>
+        </tr>
+        <tr>
+          <td>Recommended Facility</td>
+          <td>Lv.1 – Lv.2</td>
+          <td>Lv.2 – Lv.3</td>
+          <td>Lv.3 – Lv.4</td>
+        </tr>
+        <tr>
+          <td>Trade-In Requirement</td>
+          <td>3× CPU-tier miners</td>
+          <td>2× GPU + 1× GPU Ti</td>
+          <td>4× GPU-tier + 1× ASIC</td>
+        </tr>
+        <tr>
+          <td>Assembly Fee</td>
+          <td class="mono">800 hCASH</td>
+          <td class="mono">1,500 hCASH</td>
+          <td class="mono">3,000 hCASH</td>
+        </tr>
+        <tr>
+          <td>Max Supply</td>
+          <td class="mono">200</td>
+          <td class="mono">80</td>
+          <td class="mono">30</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top: 3rem;">
+    <div class="section-label">Boost Module Specs</div>
+    <div class="table-wrap">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Module</th>
+            <th>SH-B1 "Patch"</th>
+            <th>SH-B2 "Splice"</th>
+            <th>SH-B3 "Overclock"</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Effect Type</td>
+            <td>Power Reduction</td>
+            <td>Hashrate Increase</td>
+            <td>Dual (Hash + Power)</td>
+          </tr>
+          <tr>
+            <td>Boost Amount</td>
+            <td class="mono" style="color: var(--green);">-15% Power</td>
+            <td class="mono" style="color: var(--green);">+10% Hashrate</td>
+            <td class="mono" style="color: var(--green);">+8% Hash / -10% Power</td>
+          </tr>
+          <tr>
+            <td>Source Material</td>
+            <td>2× USB or 1× CPU miner</td>
+            <td>1× GPU-tier miner</td>
+            <td>1× GPU + 1× CPU miner</td>
+          </tr>
+          <tr>
+            <td>Assembly Fee</td>
+            <td class="mono">300 hCASH</td>
+            <td class="mono">600 hCASH</td>
+            <td class="mono">1,000 hCASH</td>
+          </tr>
+          <tr>
+            <td>Slots Per Miner</td>
+            <td class="mono">1</td>
+            <td class="mono">1</td>
+            <td class="mono">1</td>
+          </tr>
+          <tr>
+            <td>On Removal</td>
+            <td class="mono" style="color: var(--red);">Burned</td>
+            <td class="mono" style="color: var(--red);">Burned</td>
+            <td class="mono" style="color: var(--red);">Burned</td>
+          </tr>
+          <tr>
+            <td>Max Supply</td>
+            <td class="mono">300</td>
+            <td class="mono">150</td>
+            <td class="mono">75</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Trade-In Program -->
+<section id="tradein" class="fade-section">
+  <div class="section-label">Trade-In Program</div>
+  <div class="section-title">Turn dead miners into live hashrate.</div>
+
+  <div class="tradein-grid">
+    <div>
+      <div class="tradein-info">
+        <h3>How It Works</h3>
+        <p>The Second Hash Trade-In Program takes miners you are no longer using — USB sticks, first-gen GPUs, old rigs that draw more power than they are worth — and converts them into refabricated SH-series machines.</p>
+        <p>Your old miners are permanently decommissioned during the process. The components are harvested, tested, and reassembled into a new unit with optimized power delivery and tuned firmware. Nothing is wasted.</p>
+        <p>The result: your dead inventory turns into live hashrate, and the network gets cleaner.</p>
+      </div>
+    </div>
+    <div class="tradein-flow">
+      <div class="flow-step">
+        <div class="flow-num">01</div>
+        <div class="flow-content">
+          <h4>Select Your Trade-In</h4>
+          <p>Choose which retired miners to submit. Each SH model requires specific component types and quantities as source material.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">02</div>
+        <div class="flow-content">
+          <h4>Pay Assembly Fee</h4>
+          <p>Cover the refabrication cost in hCASH. This fee funds component testing, power rerouting, firmware tuning, and final QA.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">03</div>
+        <div class="flow-content">
+          <h4>Components Are Decommissioned</h4>
+          <p>Your submitted miners are permanently burned. This is non-reversible — the original NFTs are removed from circulation.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">04</div>
+        <div class="flow-content">
+          <h4>Receive Your SH Miner</h4>
+          <p>A new Second Hash miner NFT is minted to your wallet, ready to be placed in your facility grid and start hashing.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recipe Cards -->
+  <div class="recipe-grid">
+    <div class="recipe-card">
+      <h4>SH-R1 "Reclaim"</h4>
+      <div class="recipe-sub">Recipe A — CPU Salvage</div>
+      <div class="recipe-item"><span>Home Brew CPU Miner</span><span class="qty">×3</span></div>
+      <div class="recipe-item"><span>Assembly Fee</span><span class="qty">800 hCASH</span></div>
+      <div class="recipe-divider"></div>
+      <div class="recipe-item recipe-result"><span>Output: SH-R1</span><span class="qty">40 MH/s</span></div>
+      <br>
+      <div class="recipe-sub">Recipe B — USB Bulk</div>
+      <div class="recipe-item"><span>USB Miner</span><span class="qty">×8</span></div>
+      <div class="recipe-item"><span>Assembly Fee</span><span class="qty">800 hCASH</span></div>
+      <div class="recipe-divider"></div>
+      <div class="recipe-item recipe-result"><span>Output: SH-R1</span><span class="qty">40 MH/s</span></div>
+    </div>
+
+    <div class="recipe-card">
+      <h4>SH-R2 "Reforge"</h4>
+      <div class="recipe-sub">Recipe — GPU Rework</div>
+      <div class="recipe-item"><span>RedDragon (any gen)</span><span class="qty">×2</span></div>
+      <div class="recipe-item"><span>RedDragon Ti</span><span class="qty">×1</span></div>
+      <div class="recipe-item"><span>Assembly Fee</span><span class="qty">1,500 hCASH</span></div>
+      <div class="recipe-divider"></div>
+      <div class="recipe-item recipe-result"><span>Output: SH-R2</span><span class="qty">120 MH/s</span></div>
+      <br>
+      <div class="recipe-sub">Alt Recipe — Lightning Swap</div>
+      <div class="recipe-item"><span>Lightning G1</span><span class="qty">×2</span></div>
+      <div class="recipe-item"><span>Lightning G2</span><span class="qty">×1</span></div>
+      <div class="recipe-item"><span>Assembly Fee</span><span class="qty">1,500 hCASH</span></div>
+      <div class="recipe-divider"></div>
+      <div class="recipe-item recipe-result"><span>Output: SH-R2</span><span class="qty">120 MH/s</span></div>
+    </div>
+
+    <div class="recipe-card">
+      <h4>SH-X1 "Overhaul"</h4>
+      <div class="recipe-sub">Recipe — Cross-Vendor Build</div>
+      <div class="recipe-item"><span>Any GPU-tier miner</span><span class="qty">×4</span></div>
+      <div class="recipe-item"><span>Any ASIC-tier miner</span><span class="qty">×1</span></div>
+      <div class="recipe-item"><span>Assembly Fee</span><span class="qty">3,000 hCASH</span></div>
+      <div class="recipe-divider"></div>
+      <div class="recipe-item recipe-result"><span>Output: SH-X1</span><span class="qty">300 MH/s</span></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Ecosystem Impact -->
+<section id="impact" class="fade-section">
+  <div class="section-label">Ecosystem Impact</div>
+  <div class="section-title">Better for players. Better for the network.</div>
+  <div class="section-desc">Second Hash is not just a hardware brand. It is an economic mechanism designed to improve the health of the HashCash ecosystem.</div>
+
+  <div class="impact-grid">
+    <div class="impact-card">
+      <div class="impact-icon">NFT SUPPLY</div>
+      <h4>Dead NFT Compression</h4>
+      <p>Every SH miner created permanently removes 3–5 obsolete miner NFTs from circulation. This reduces marketplace clutter and restores price signal clarity for active hardware.</p>
+    </div>
+    <div class="impact-card">
+      <div class="impact-icon">hCASH BURN</div>
+      <h4>Deflationary Pressure</h4>
+      <p>Assembly fees (800–3,000 hCASH per unit) are consumed during the refabrication process. With over 4M hCASH already burned network-wide, Second Hash adds another sustained burn vector.</p>
+    </div>
+    <div class="impact-card">
+      <div class="impact-icon">RETENTION</div>
+      <h4>Player Re-engagement</h4>
+      <p>66% of Lv.1 facilities are currently offline. Trade-In gives those players a reason to return: their dormant inventory becomes the raw material for a competitive upgrade path.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Story -->
+<section id="story" class="fade-section">
+  <div class="section-label">About</div>
+  <div class="section-title">The Second Hash Story</div>
+
+  <div class="story-content">
+    <p>We did not set out to build mining hardware. We set out to solve a problem.</p>
+    <p>As the HashCash network matured through successive halvings, we watched a pattern repeat: each wave of new, more efficient hardware rendered the previous generation economically dead. USB miners that once earned meaningful rewards became wallet clutter. First-gen GPUs that cost real AVAX to acquire sat idle, consuming power slots that could be better used.</p>
+    <p>The standard answer was "just buy new hardware." But not everyone can. And even for those who can, the old machines still exist — sitting in wallets, listed on the marketplace for prices nobody will pay, taking up space in a network that would be healthier without them.</p>
+    <p>Second Hash exists because we believe hardware does not have to die when the math changes. The silicon still works. The compute paths are still functional. What failed is the configuration — the power delivery, the firmware tuning, the architecture-level decisions that were optimal at launch but are not optimal now.</p>
+    <p>So we strip them down, test every component, and rebuild them into machines tuned for today's network conditions. The result is not as efficient as the latest Jvidia or Lightning flagship. It was never meant to be. It is meant to be the best possible machine you can build from parts that would otherwise contribute nothing.</p>
+    <p>We are not competing with the manufacturers. We are cleaning up after them — and giving every miner in the HashCash ecosystem a second chance to hash.</p>
+  </div>
+  <div class="story-sig">
+    — The Second Hash Workshop
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <img src="images/SH_Logo.png" alt="Second Hash">
+    </div>
+    <p>FOR ENTERTAINMENT PURPOSES ONLY<br>NOT INVESTMENT ADVICE<br>VOID WHERE PROHIBITED BY LAW<br>&copy; Second Hash 2026</p>
+    <div class="footer-links">
+      <a href="https://hashcash.club" target="_blank" rel="noopener">Club HashCash</a>
+      <a href="second-hash-docs/Second_Hash_Whitepaper.pdf" target="_blank">Whitepaper</a>
+      <a href="https://x.com/" target="_blank" rel="noopener">X / Twitter</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Back to Top -->
+<button class="back-to-top" id="backToTop" aria-label="Back to top">&#8593;</button>
+
+<script>
+// Scroll fade-in with Intersection Observer
+const fadeSections = document.querySelectorAll('.fade-section');
+const fadeObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      fadeObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.08 });
+fadeSections.forEach(s => fadeObserver.observe(s));
+
+// Hamburger menu
+const hamburger = document.getElementById('hamburger');
+const navLinks = document.querySelector('.nav-links');
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('active');
+  navLinks.classList.toggle('mobile-open');
+});
+navLinks.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', () => {
+    hamburger.classList.remove('active');
+    navLinks.classList.remove('mobile-open');
+  });
+});
+
+// Back to top
+const backToTop = document.getElementById('backToTop');
+window.addEventListener('scroll', () => {
+  backToTop.classList.toggle('show', window.scrollY > 600);
+});
+backToTop.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Active nav link highlight
+const sections = document.querySelectorAll('section[id]');
+window.addEventListener('scroll', () => {
+  const scrollY = window.scrollY + 100;
+  sections.forEach(sec => {
+    const top = sec.offsetTop;
+    const height = sec.offsetHeight;
+    const id = sec.getAttribute('id');
+    const link = document.querySelector(`.nav-links a[href="#${id}"]`);
+    if (link) {
+      if (scrollY >= top && scrollY < top + height) {
+        link.style.color = 'var(--accent)';
+      } else {
+        link.style.color = '';
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>
