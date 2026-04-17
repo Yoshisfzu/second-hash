@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade-In Simulator — Second Hash</title>
+<link rel="icon" type="image/png" href="images/SH_Logo.png">
+<meta property="og:title" content="Second Hash Trade-In Simulator">
+<meta property="og:description" content="Refabricate retired miners into tuned Second Hash machines. Interactive trade-in dApp for Club HashCash.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0c0f;
+  --bg-secondary: #111318;
+  --bg-card: #161920;
+  --bg-highlight: #1c1f28;
+  --border: #252830;
+  --border-accent: #3a3f4c;
+  --text-primary: #e8e9ec;
+  --text-secondary: #8b8f9a;
+  --text-muted: #5c6070;
+  --accent: #d4924a;
+  --accent-dim: #9e6a30;
+  --accent-glow: rgba(212, 146, 74, 0.15);
+  --green: #3ddc84;
+  --red: #ff5252;
+  --blue: #4a90d9;
+  --mono: 'Space Mono', monospace;
+  --sans: 'Inter', -apple-system, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--sans); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+/* ===== NAV ===== */
+nav { position: fixed; top: 0; width: 100%; background: rgba(10,12,15,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); z-index: 100; padding: 0 2rem; }
+nav .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+nav .logo { font-family: var(--mono); font-weight: 700; font-size: 1.1rem; color: var(--accent); letter-spacing: -0.5px; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+nav .logo span { color: var(--text-secondary); }
+nav .logo img { height: 32px; width: 32px; object-fit: contain; }
+.nav-right { display: flex; align-items: center; gap: 1rem; }
+.nav-right a { color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.2s; }
+.nav-right a:hover { color: var(--text-primary); }
+
+/* Wallet Button */
+.wallet-btn {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: var(--accent); color: var(--bg-primary);
+  padding: 0.45rem 1.2rem; border-radius: 4px; font-size: 0.82rem; font-weight: 600;
+  border: none; cursor: pointer; font-family: var(--sans); transition: all 0.2s;
+}
+.wallet-btn:hover { opacity: 0.85; }
+.wallet-btn.connected { background: var(--green); }
+.wallet-btn .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* ===== CONTAINER ===== */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+
+/* ===== HEADER ===== */
+.sim-header { padding-top: 7rem; padding-bottom: 1.5rem; }
+.section-label { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.8rem; }
+.sim-header h1 { font-size: 2.4rem; font-weight: 700; margin-bottom: 0.8rem; }
+.sim-header p { color: var(--text-secondary); font-size: 0.95rem; max-width: 640px; margin-bottom: 1rem; }
+
+/* API Status */
+.api-status { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.72rem; color: var(--text-muted); padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 3px; margin-bottom: 1rem; }
+.api-dot { width: 6px; height: 6px; border-radius: 50%; }
+.api-dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.api-dot.static { background: var(--accent); }
+
+/* ===== TABS ===== */
+.sim-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+.sim-tab { padding: 0.8rem 1.5rem; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--sans); }
+.sim-tab:hover { color: var(--text-secondary); }
+.sim-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ===== PRODUCT CATALOG (First View) ===== */
+.catalog-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem; margin-bottom: 3rem;
+}
+.product-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px;
+  overflow: hidden; transition: all 0.2s; cursor: pointer; position: relative;
+}
+.product-card:hover { border-color: var(--accent-dim); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.product-card.can-build { border-color: var(--green); box-shadow: 0 0 20px rgba(61,220,132,0.1); }
+.product-card.cannot-build { opacity: 0.45; }
+.product-card.cannot-build:hover { opacity: 0.65; transform: none; }
+
+/* Phase Badge */
+.phase-badge {
+  position: absolute; top: 12px; left: 12px; z-index: 2;
+  font-family: var(--mono); font-size: 0.65rem; font-weight: 700;
+  padding: 0.2rem 0.5rem; border-radius: 3px; text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.phase-badge.p1 { background: rgba(212,146,74,0.9); color: var(--bg-primary); }
+.phase-badge.p2 { background: rgba(74,144,217,0.9); color: #fff; }
+
+/* Build Status Badge */
+.build-badge {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  font-family: var(--mono); font-size: 0.65rem; font-weight: 700;
+  padding: 0.2rem 0.5rem; border-radius: 3px;
+}
+.build-badge.ready { background: rgba(61,220,132,0.9); color: #000; }
+.build-badge.partial { background: rgba(212,146,74,0.9); color: #000; }
+.build-badge.locked { background: rgba(92,96,112,0.6); color: #ccc; }
+
+/* Product Image */
+.product-img-wrap {
+  width: 100%; aspect-ratio: 1/1; background: #0d0e12;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+  position: relative; padding: 1rem;
+}
+.product-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.product-img-wrap .category-tag {
+  position: absolute; bottom: 8px; right: 8px;
+  font-family: var(--mono); font-size: 0.62rem; color: var(--text-muted);
+  background: rgba(10,12,15,0.8); padding: 0.15rem 0.5rem; border-radius: 2px;
+}
+
+/* Product Body */
+.product-body { padding: 1.2rem 1.5rem; }
+.product-model { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.15rem; }
+.product-codename { font-family: var(--mono); font-size: 0.82rem; color: var(--accent); margin-bottom: 0.8rem; }
+
+/* Spec Row */
+.spec-row { display: flex; gap: 1.5rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+.spec-item { }
+.spec-val { font-family: var(--mono); font-size: 1rem; font-weight: 700; }
+.spec-unit { font-size: 0.68rem; color: var(--text-muted); }
+.spec-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* Materials */
+.materials-section { border-top: 1px solid var(--border); padding-top: 0.8rem; margin-top: 0.5rem; }
+.materials-title { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+.material-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.3rem 0; font-size: 0.82rem;
+}
+.material-name { color: var(--text-secondary); }
+.material-qty { font-family: var(--mono); font-size: 0.78rem; }
+.material-qty.have { color: var(--green); }
+.material-qty.need { color: var(--text-muted); }
+.material-qty.partial { color: var(--accent); }
+
+.assembly-cost {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 0.5rem; margin-top: 0.3rem; border-top: 1px dashed var(--border);
+  font-size: 0.85rem;
+}
+.assembly-cost .cost-val { font-family: var(--mono); font-weight: 700; color: var(--accent); }
+
+/* Assemble Button */
+.assemble-btn {
+  width: 100%; margin-top: 1rem; padding: 0.7rem; border: none; border-radius: 4px;
+  font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: var(--sans);
+  transition: all 0.2s;
+}
+.assemble-btn.ready { background: var(--green); color: #000; }
+.assemble-btn.ready:hover { opacity: 0.85; }
+.assemble-btn.disabled { background: var(--bg-highlight); color: var(--text-muted); cursor: not-allowed; }
+.assemble-btn.no-wallet { background: var(--accent); color: var(--bg-primary); }
+.assemble-btn.no-wallet:hover { opacity: 0.85; }
+
+/* Recipe Selector */
+.recipe-selector { margin-bottom: 0.8rem; }
+.recipe-selector select {
+  width: 100%; padding: 0.5rem; background: var(--bg-highlight); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--text-primary); font-size: 0.82rem; font-family: var(--sans);
+  cursor: pointer; outline: none;
+}
+.recipe-selector select:focus { border-color: var(--accent); }
+
+/* ===== INVENTORY TAB ===== */
+.inventory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+.inventory-stats { display: flex; gap: 1.5rem; }
+.inv-stat { text-align: center; }
+.inv-stat .val { font-family: var(--mono); font-size: 1.3rem; font-weight: 700; }
+.inv-stat .label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+.inventory-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+  border-radius: 4px; overflow: hidden;
+}
+.inv-card {
+  background: var(--bg-card); padding: 1rem; position: relative;
+}
+.inv-card .count-badge {
+  position: absolute; top: 8px; right: 8px;
+  font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+  background: var(--accent); color: var(--bg-primary);
+  padding: 0.15rem 0.5rem; border-radius: 10px; min-width: 24px; text-align: center;
+}
+.inv-card-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.2rem; padding-right: 40px; }
+.inv-card-type { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem; }
+.inv-card-stats { display: flex; gap: 1rem; }
+.inv-card-stat { font-family: var(--mono); font-size: 0.75rem; }
+.inv-card-stat .v { font-weight: 700; }
+.inv-card-stat .u { color: var(--text-muted); font-size: 0.65rem; }
+
+.no-wallet-msg {
+  text-align: center; padding: 4rem 2rem;
+  background: var(--bg-card); border: 1px dashed var(--border); border-radius: 6px;
+}
+.no-wallet-msg p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem; }
+.connect-btn {
+  background: var(--accent); color: var(--bg-primary); border: none; border-radius: 4px;
+  padding: 0.7rem 2rem; font-size: 0.88rem; font-weight: 600; cursor: pointer;
+  font-family: var(--sans);
+}
+.connect-btn:hover { opacity: 0.85; }
+
+/* ===== COMPARE TAB ===== */
+.compare-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; }
+.compare-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.compare-table th { font-family: var(--mono); font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding: 0.8rem 1rem; text-align: left; background: var(--bg-card); border-bottom: 1px solid var(--border); white-space: nowrap; position: sticky; top: 0; }
+.compare-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.compare-table tr:hover td { background: var(--bg-highlight); }
+.compare-table .mono { font-family: var(--mono); font-weight: 700; }
+.compare-table .sh-row td { background: rgba(212,146,74,0.06); }
+.compare-table .sh-row:hover td { background: rgba(212,146,74,0.12); }
+.tier-badge { font-family: var(--mono); font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 2px; display: inline-block; }
+.tier-s { background: rgba(255,107,107,0.15); color: #ff6b6b; }
+.tier-a { background: rgba(61,220,132,0.15); color: var(--green); }
+.tier-b { background: rgba(74,144,217,0.15); color: var(--blue); }
+.tier-c { background: rgba(92,96,112,0.15); color: var(--text-muted); }
+.tier-sh { background: rgba(212,146,74,0.2); color: var(--accent); }
+.eff-bar { display: inline-block; height: 4px; border-radius: 2px; background: var(--accent); vertical-align: middle; margin-left: 6px; }
+
+/* ===== DETAIL MODAL ===== */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; display: none; align-items: center; justify-content: center; padding: 2rem; }
+.modal-overlay.open { display: flex; }
+.modal-content {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto;
+}
+.modal-img { width: 100%; aspect-ratio: 1/1; object-fit: contain; border-radius: 8px 8px 0 0; background: #0d0e12; padding: 1.5rem; }
+.modal-body { padding: 1.5rem; }
+.modal-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: rgba(0,0,0,0.6); border: none; color: #fff; width: 32px; height: 32px;
+  border-radius: 50%; font-size: 1rem; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+}
+
+/* ===== FOOTER ===== */
+footer { border-top: 1px solid var(--border); padding: 3rem 2rem; margin-top: 4rem; text-align: center; }
+footer p { font-size: 0.72rem; color: var(--text-muted); line-height: 1.8; text-transform: uppercase; letter-spacing: 0.05em; }
+footer .footer-links { margin-top: 1rem; display: flex; gap: 1.5rem; justify-content: center; }
+footer .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 0.78rem; transition: color 0.2s; }
+footer .footer-links a:hover { color: var(--accent); }
+
+/* ===== UTILS ===== */
+.hidden { display: none !important; }
+.fade-in { animation: fadeIn 0.3s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .sim-header h1 { font-size: 1.8rem; }
+  .catalog-grid { grid-template-columns: 1fr; }
+  .inventory-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .sim-tabs { overflow-x: auto; }
+  .sim-tab { padding: 0.6rem 1rem; font-size: 0.78rem; white-space: nowrap; }
+  .nav-right a.hide-mobile { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo"><img src="images/SH_Logo.png" alt="SH">Second Hash <span>///</span></a>
+    <div class="nav-right">
+      <a href="index.html" class="hide-mobile">Home</a>
+      <a href="index.html#products" class="hide-mobile">Miners</a>
+      <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">
+        <span class="dot"></span> Connect Wallet
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <!-- HEADER -->
+  <div class="sim-header">
+    <div class="section-label">Trade-In Simulator</div>
+    <h1>Build before you burn.</h1>
+    <p>Select a Second Hash product, check what's needed, and assemble it from your retired miners. Real specs, real costs, real on-chain assembly.</p>
+    <div class="api-status" id="apiStatus">
+      <span class="api-dot static"></span>
+      <span>STATIC DATA — Post-halving snapshot</span>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="sim-tabs">
+    <button class="sim-tab active" data-tab="catalog">Products</button>
+    <button class="sim-tab" data-tab="inventory">My Inventory</button>
+    <button class="sim-tab" data-tab="compare">Efficiency Map</button>
+  </div>
+
+  <!-- PRODUCTS TAB (First View) -->
+  <div class="tab-panel active" id="panel-catalog">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+      <div>
+        <div style="font-size:1.1rem;font-weight:700;">Refabricated Product Lineup</div>
+        <div style="font-size:0.85rem;color:var(--text-secondary);">Click a product to view details and assemble.</div>
+      </div>
+      <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:4px;overflow:hidden;" id="phaseFilter">
+        <button class="filter-btn active" data-phase="all">All Products</button>
+        <button class="filter-btn" data-phase="miner">Miners</button>
+        <button class="filter-btn" data-phase="boost">Boost Modules</button>
+      </div>
+    </div>
+    <div class="catalog-grid" id="catalogGrid"></div>
+  </div>
+
+  <!-- INVENTORY TAB -->
+  <div class="tab-panel" id="panel-inventory">
+    <div id="inventoryContent"></div>
+  </div>
+
+  <!-- COMPARE TAB -->
+  <div class="tab-panel" id="panel-compare">
+    <div class="compare-table-wrap">
+      <table class="compare-table" id="compareTable">
+        <thead><tr>
+          <th>Tier</th><th>Name</th><th>Type</th><th>Hashrate</th><th>Power</th><th>Efficiency</th><th>Price (hCASH)</th>
+        </tr></thead>
+        <tbody id="compareBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL / ASSEMBLE MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-content" id="modalContent" style="position:relative;"></div>
+</div>
+
+<footer>
+  <p>Trade-In Simulator v2.0 — Second Hash Workshop<br>FOR ENTERTAINMENT PURPOSES ONLY &bull; NOT INVESTMENT ADVICE<br>&copy; Second Hash 2026</p>
+  <div class="footer-links">
+    <a href="index.html">Second Hash Home</a>
+    <a href="https://hashcash.club" target="_blank" rel="noopener">Club HashCash</a>
+    <a href="https://hcash.winstonhq.com/hardware" target="_blank" rel="noopener">Winston Dashboard</a>
+  </div>
+</footer>
+
+<script>
+// ============================================================
+// MINER DATABASE (Static fallback — updated by API if available)
+// ============================================================
+const MINERS = [
+  { id: 1, name: "Home Brew CPU Miner", type: "CPU", mh: 10, w: 100, eff: 0.100, price: 200, tier: "C" },
+  { id: 2, name: "DragonTech RedDragon", type: "GPU", mh: 14, w: 100, eff: 0.140, price: 750, tier: "C" },
+  { id: 4, name: "RedDragon Quadro", type: "CPU Rig", mh: 70, w: 600, eff: 0.117, price: 2000, tier: "C" },
+  { id: 6, name: "Quad Socket CPU", type: "Custom Rig", mh: 40, w: 200, eff: 0.200, price: 1700, tier: "B" },
+  { id: 7, name: "RedDragon Tri-Rig", type: "Custom Rig", mh: 45, w: 400, eff: 0.113, price: 2750, tier: "C" },
+  { id: 8, name: "RedDragon Ti Duo-Rig", type: "Custom Rig", mh: 70, w: 700, eff: 0.100, price: 2000, tier: "C" },
+  { id: 11, name: "Lightning G1", type: "GPU", mh: 20, w: 100, eff: 0.200, price: 750, tier: "B" },
+  { id: 12, name: "Lightning G2", type: "GPU", mh: 35, w: 200, eff: 0.175, price: 1000, tier: "C" },
+  { id: 13, name: "Miner #13", type: "Unknown", mh: 250, w: 2000, eff: 0.125, price: 5000, tier: "C" },
+  { id: 14, name: "Plasma Base", type: "GPU", mh: 25, w: 100, eff: 0.250, price: 750, tier: "B" },
+  { id: 15, name: "Plasma XL", type: "GPU", mh: 45, w: 200, eff: 0.225, price: 1000, tier: "B" },
+  { id: 16, name: "USB Miner", type: "USB", mh: 1, w: 10, eff: 0.100, price: 300, tier: "C" },
+  { id: 17, name: "HashTech Beast ASIC", type: "ASIC", mh: 200, w: 1000, eff: 0.200, price: 3500, tier: "B" },
+  { id: 18, name: "Quad USB Array", type: "USB Rig", mh: 0, w: 100, eff: 0.000, price: 50, tier: "C" },
+  { id: 19, name: "RedDragon v2.0", type: "GPU", mh: 45, w: 300, eff: 0.150, price: 2500, tier: "C" },
+  { id: 20, name: "RD Quadro v2.0", type: "Custom Rig", mh: 70, w: 400, eff: 0.175, price: 2750, tier: "C" },
+  { id: 21, name: "RD Ti Duo-Rig v2.0", type: "Custom Rig", mh: 90, w: 600, eff: 0.150, price: 3000, tier: "C" },
+  { id: 22, name: "RD Tri-Rig v2.0", type: "Custom Rig", mh: 110, w: 600, eff: 0.183, price: 3750, tier: "C" },
+  { id: 23, name: "Windflash Red", type: "Wind/Plasma", mh: 125, w: 600, eff: 0.208, price: 1500, tier: "B" },
+  { id: 24, name: "Windflash Blue", type: "Wind/Plasma", mh: 250, w: 1200, eff: 0.208, price: 6000, tier: "B" },
+  { id: 25, name: "HashTech Mini Beast", type: "ASIC", mh: 150, w: 500, eff: 0.300, price: 5000, tier: "B" },
+  { id: 26, name: "Plasma XXL", type: "GPU", mh: 60, w: 200, eff: 0.300, price: 5000, tier: "B" },
+  { id: 29, name: "CPU Miner v2.0", type: "CPU", mh: 30, w: 100, eff: 0.300, price: 500, tier: "B" },
+  { id: 30, name: "Lightning G3", type: "GPU", mh: 50, w: 100, eff: 0.500, price: 1500, tier: "A" },
+  { id: 32, name: "RedDragon TiX", type: "GPU", mh: 45, w: 100, eff: 0.450, price: 1000, tier: "B" },
+  { id: 33, name: "HashTech Beast2 ASIC", type: "ASIC", mh: 350, w: 1000, eff: 0.350, price: null, tier: "B" },
+  { id: 34, name: "Ennea Socket CPU", type: "Custom Rig", mh: 50, w: 200, eff: 0.250, price: 1700, tier: "B" },
+  { id: 36, name: "Lightning G1 Quad-Rig", type: "Custom Rig", mh: 80, w: 200, eff: 0.400, price: 1500, tier: "B" },
+  { id: 37, name: "Lightning G2 Quad-Rig", type: "Custom Rig", mh: 140, w: 400, eff: 0.350, price: 4500, tier: "B" },
+];
+
+// ============================================================
+// SH PRODUCTS + RECIPES
+// ============================================================
+const SH_PRODUCTS = [
+  {
+    model: "SH-R1", codename: "Reclaim", phase: 1, category: "miner",
+    mh: 40, w: 150, eff: 0.267, assemblyCost: 800,
+    image: "images/SH-R1_Reclaim.png",
+    desc: "Entry-level refab. Built from CPU cores and USB chipsets stripped from end-of-life miners. Optimized for low-power slots.",
+    recipes: [
+      { name: "CPU Salvage", inputs: [{ id: 1, name: "Home Brew CPU Miner", qty: 3 }] },
+      { name: "USB Bulk", inputs: [{ id: 16, name: "USB Miner", qty: 8 }] },
+      { name: "USB Array Strip", inputs: [{ id: 18, name: "Quad USB Array", qty: 3 }, { id: 16, name: "USB Miner", qty: 2 }] },
+      { name: "Quadro Recore", inputs: [{ id: 4, name: "RedDragon Quadro", qty: 2 }] },
+    ]
+  },
+  {
+    model: "SH-R2", codename: "Reforge", phase: 1, category: "miner",
+    mh: 120, w: 400, eff: 0.300, assemblyCost: 1500,
+    image: "images/SH-R2_Reforge.png",
+    desc: "Mid-tier GPU rebuild. Cross-vendor GPU dies are reballed, tested, and paired with reworked power delivery for sustained hashrate.",
+    recipes: [
+      { name: "GPU Rework", inputs: [{ id: 2, name: "DragonTech RedDragon", qty: 2 }, { id: 19, name: "RedDragon v2.0", qty: 1 }] },
+      { name: "Lightning Swap", inputs: [{ id: 11, name: "Lightning G1", qty: 2 }, { id: 12, name: "Lightning G2", qty: 1 }] },
+      { name: "RD Tri Salvage", inputs: [{ id: 7, name: "RedDragon Tri-Rig", qty: 1 }, { id: 8, name: "RedDragon Ti Duo-Rig", qty: 1 }] },
+      { name: "Multi-RD Strip", inputs: [{ id: 20, name: "RD Quadro v2.0", qty: 1 }, { id: 2, name: "DragonTech RedDragon", qty: 2 }] },
+    ]
+  },
+  {
+    model: "SH-X1", codename: "Overhaul", phase: 1, category: "miner",
+    mh: 300, w: 600, eff: 0.500, assemblyCost: 3000,
+    image: "images/SH-X1_Overhaul.png",
+    desc: "Flagship refab. Multi-vendor architecture combining the best salvageable components into a competition-grade rig.",
+    recipes: [
+      { name: "Cross-Vendor Build", inputs: [{ id: 22, name: "RD Tri-Rig v2.0", qty: 1 }, { id: 13, name: "Miner #13", qty: 1 }, { id: 12, name: "Lightning G2", qty: 1 }] },
+      { name: "Heavy Rig Rebuild", inputs: [{ id: 8, name: "RedDragon Ti Duo-Rig", qty: 1 }, { id: 21, name: "RD Ti Duo-Rig v2.0", qty: 1 }, { id: 7, name: "RedDragon Tri-Rig", qty: 1 }] },
+      { name: "RD Fleet Strip", inputs: [{ id: 19, name: "RedDragon v2.0", qty: 2 }, { id: 20, name: "RD Quadro v2.0", qty: 1 }, { id: 21, name: "RD Ti Duo-Rig v2.0", qty: 1 }] },
+    ]
+  },
+  {
+    model: "SH-B1", codename: "Patch", phase: 1, category: "boost",
+    effect: "-15% Power Draw", assemblyCost: 300,
+    image: "images/SH-B1_Patch.png",
+    desc: "Power regulation module. Reroutes excess current draw from legacy components. Burned on removal.",
+    recipes: [
+      { name: "USB Scrap", inputs: [{ id: 16, name: "USB Miner", qty: 2 }] },
+      { name: "CPU Strip", inputs: [{ id: 1, name: "Home Brew CPU Miner", qty: 1 }] },
+    ]
+  },
+  {
+    model: "SH-B2", codename: "Splice", phase: 1, category: "boost",
+    effect: "+10% Hashrate", assemblyCost: 600,
+    image: "images/SH-B2_Splice.png",
+    desc: "Hashrate amplifier. GPU die transplant that adds supplementary compute paths. Burned on removal.",
+    recipes: [
+      { name: "GPU Core Pull", inputs: [{ id: 2, name: "DragonTech RedDragon", qty: 1 }] },
+      { name: "Lightning Die", inputs: [{ id: 11, name: "Lightning G1", qty: 1 }] },
+    ]
+  },
+  {
+    model: "SH-B3", codename: "Overclock", phase: 1, category: "boost",
+    effect: "+8% Hash / -10% Power", assemblyCost: 1000,
+    image: "images/SH-B3_Overclock.png",
+    desc: "Dual-effect tuning module. Combines CPU voltage regulation with GPU clock optimization. Burned on removal.",
+    recipes: [
+      { name: "Hybrid Module", inputs: [{ id: 2, name: "DragonTech RedDragon", qty: 1 }, { id: 1, name: "Home Brew CPU Miner", qty: 1 }] },
+      { name: "Lightning Hybrid", inputs: [{ id: 12, name: "Lightning G2", qty: 1 }, { id: 1, name: "Home Brew CPU Miner", qty: 1 }] },
+    ]
+  },
+  {
+    model: "SH-R3", codename: "Refit", phase: 2, category: "miner",
+    mh: 250, w: 400, eff: 0.625, assemblyCost: 2500,
+    image: "images/SH-R3_Refit.png",
+    desc: "ASIC-hybrid refab. Pairs rewired ASIC logic boards with precision CPU controllers for high-efficiency mid-range output.",
+    recipes: [
+      { name: "ASIC Rewire", inputs: [{ id: 17, name: "HashTech Beast ASIC", qty: 1 }, { id: 29, name: "CPU Miner v2.0", qty: 2 }] },
+      { name: "Beast Compact", inputs: [{ id: 25, name: "HashTech Mini Beast", qty: 1 }, { id: 6, name: "Quad Socket CPU", qty: 1 }] },
+    ]
+  },
+  {
+    model: "SH-R4", codename: "Fuse", phase: 2, category: "miner",
+    mh: 400, w: 600, eff: 0.667, assemblyCost: 4000,
+    image: "images/SH-R4_Fuse.png",
+    desc: "Multi-platform fusion. Plasma and Lightning architectures merged into a unified compute substrate with shared cooling.",
+    recipes: [
+      { name: "Plasma-Lightning Merge", inputs: [{ id: 15, name: "Plasma XL", qty: 2 }, { id: 36, name: "Lightning G1 Quad-Rig", qty: 1 }] },
+      { name: "XXL-Quad Fusion", inputs: [{ id: 26, name: "Plasma XXL", qty: 1 }, { id: 37, name: "Lightning G2 Quad-Rig", qty: 1 }] },
+    ]
+  },
+  {
+    model: "SH-X2", codename: "Apex", phase: 2, category: "miner",
+    mh: 700, w: 850, eff: 0.824, assemblyCost: 6000,
+    image: "images/SH-X2_Apex.png",
+    desc: "Ultimate refab. Three-vendor architecture: RedDragon GPU, HashTech ASIC, and Ennea CPU working in parallel. Peak Second Hash engineering.",
+    recipes: [
+      { name: "All-Vendor Apex", inputs: [{ id: 32, name: "RedDragon TiX", qty: 1 }, { id: 33, name: "HashTech Beast2 ASIC", qty: 1 }, { id: 34, name: "Ennea Socket CPU", qty: 1 }] },
+    ]
+  },
+  {
+    model: "SH-B4", codename: "Surge", phase: 2, category: "boost",
+    effect: "+20% Hashrate", assemblyCost: 1500,
+    image: "images/SH-B4_Surge.png",
+    desc: "High-output amplifier. Windflash turbine cores repurposed as supplementary compute accelerators. Burned on removal.",
+    recipes: [
+      { name: "Windflash Core", inputs: [{ id: 23, name: "Windflash Red", qty: 1 }] },
+      { name: "Ennea Die", inputs: [{ id: 34, name: "Ennea Socket CPU", qty: 1 }] },
+    ]
+  },
+  {
+    model: "SH-B5", codename: "Regulate", phase: 2, category: "boost",
+    effect: "-25% Power Draw", assemblyCost: 2000,
+    image: "images/SH-B5_Regulate.png",
+    desc: "Deep power optimization. ASIC switching regulators paired with Plasma capacitor arrays. Burned on removal.",
+    recipes: [
+      { name: "ASIC Power Module", inputs: [{ id: 29, name: "CPU Miner v2.0", qty: 1 }, { id: 14, name: "Plasma Base", qty: 1 }] },
+    ]
+  },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let walletAddress = null;
+let walletInventory = {}; // { minerId: count }
+let hcashBalance = 0;
+let apiKey = null;
+let apiConnected = false;
+let activePhaseFilter = "all";
+
+// ============================================================
+// HELPERS
+// ============================================================
+function getMiner(id) { return MINERS.find(m => m.id === id); }
+function formatEff(e) { return e === Infinity ? "∞" : e === 0 ? "0.000" : e.toFixed(3); }
+function shortAddr(a) { return a ? a.slice(0,6) + "..." + a.slice(-4) : ""; }
+
+// ============================================================
+// WALLET CONNECTION (MetaMask / Core Wallet)
+// ============================================================
+async function connectWallet() {
+  if (walletAddress) {
+    // Disconnect
+    walletAddress = null;
+    walletInventory = {};
+    hcashBalance = 0;
+    document.getElementById("walletBtn").innerHTML = '<span class="dot"></span> Connect Wallet';
+    document.getElementById("walletBtn").classList.remove("connected");
+    renderCatalog();
+    renderInventory();
+    return;
+  }
+
+  if (!window.ethereum) {
+    alert("Please install MetaMask or Core Wallet to connect.");
+    return;
+  }
+
+  try {
+    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+    walletAddress = accounts[0];
+
+    // Check chain — Avalanche C-Chain = 0xa86a (43114)
+    const chainId = await window.ethereum.request({ method: "eth_chainId" });
+    if (chainId !== "0xa86a") {
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0xa86a" }]
+        });
+      } catch (switchErr) {
+        if (switchErr.code === 4902) {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+              chainId: "0xa86a",
+              chainName: "Avalanche C-Chain",
+              nativeCurrency: { name: "AVAX", symbol: "AVAX", decimals: 18 },
+              rpcUrls: ["https://api.avax.network/ext/bc/C/rpc"],
+              blockExplorerUrls: ["https://snowtrace.io/"]
+            }]
+          });
+        }
+      }
+    }
+
+    document.getElementById("walletBtn").innerHTML = `<span class="dot"></span> ${shortAddr(walletAddress)}`;
+    document.getElementById("walletBtn").classList.add("connected");
+
+    // Fetch inventory from on-chain (miner NFT balances)
+    await loadWalletInventory();
+    renderCatalog();
+    renderInventory();
+
+  } catch (err) {
+    console.error("Wallet connection failed:", err);
+  }
+}
+
+async function loadWalletInventory() {
+  if (!walletAddress || !window._liveContracts) {
+    // Use demo inventory if no live contracts
+    walletInventory = {};
+    return;
+  }
+
+  // ERC-1155 balanceOf(address, tokenId) selector = 0x00fdd58e
+  const minerContracts = window._liveContracts.filter(c => c.category === "miner_nft");
+
+  for (const mc of minerContracts) {
+    try {
+      const paddedAddr = walletAddress.slice(2).padStart(64, "0");
+      const paddedId = mc.minerIndex.toString(16).padStart(64, "0");
+      const data = "0x00fdd58e" + paddedAddr + paddedId;
+
+      const result = await window.ethereum.request({
+        method: "eth_call",
+        params: [{ to: mc.address, data }, "latest"]
+      });
+
+      const balance = parseInt(result, 16);
+      if (balance > 0) {
+        walletInventory[mc.minerIndex] = balance;
+      }
+    } catch (e) {
+      // Might be ERC-721, try balanceOf(address)
+      try {
+        const paddedAddr = walletAddress.slice(2).padStart(64, "0");
+        const data = "0x70a08231" + paddedAddr;
+        const result = await window.ethereum.request({
+          method: "eth_call",
+          params: [{ to: mc.address, data }, "latest"]
+        });
+        const balance = parseInt(result, 16);
+        if (balance > 0) {
+          walletInventory[mc.minerIndex] = balance;
+        }
+      } catch (e2) { /* skip */ }
+    }
+  }
+
+  // Also check hCASH balance
+  const gameToken = window._liveContracts.find(c => c.category === "game_token");
+  if (gameToken) {
+    try {
+      const paddedAddr = walletAddress.slice(2).padStart(64, "0");
+      const data = "0x70a08231" + paddedAddr;
+      const result = await window.ethereum.request({
+        method: "eth_call",
+        params: [{ to: gameToken.address, data }, "latest"]
+      });
+      hcashBalance = parseInt(result, 16) / 1e18;
+    } catch (e) { /* skip */ }
+  }
+}
+
+// ============================================================
+// CHECK RECIPE BUILDABILITY
+// ============================================================
+function checkRecipe(recipe) {
+  if (!walletAddress) return { status: "unknown", details: [] };
+  let allMet = true, anyMet = false;
+  const details = recipe.inputs.map(input => {
+    const have = walletInventory[input.id] || 0;
+    const need = input.qty;
+    const met = have >= need;
+    if (met) anyMet = true; else allMet = false;
+    return { ...input, have, met };
+  });
+  return { status: allMet ? "ready" : anyMet ? "partial" : "missing", details };
+}
+
+function bestRecipeStatus(product) {
+  if (!walletAddress) return "unknown";
+  let best = "missing";
+  for (const r of product.recipes) {
+    const c = checkRecipe(r);
+    if (c.status === "ready") return "ready";
+    if (c.status === "partial") best = "partial";
+  }
+  return best;
+}
+
+// ============================================================
+// RENDER: PRODUCT CATALOG
+// ============================================================
+function renderCatalog() {
+  const grid = document.getElementById("catalogGrid");
+  const filtered = SH_PRODUCTS.filter(p => {
+    if (activePhaseFilter === "all") return true;
+    if (activePhaseFilter === "1") return p.phase === 1;
+    if (activePhaseFilter === "2") return p.phase === 2;
+    if (activePhaseFilter === "miner") return p.category === "miner";
+    if (activePhaseFilter === "boost") return p.category === "boost";
+    return true;
+  });
+
+  grid.innerHTML = filtered.map(p => {
+    const status = bestRecipeStatus(p);
+    const isMiner = p.category === "miner";
+    const cardClass = walletAddress ? (status === "ready" ? "can-build" : status === "partial" ? "" : "cannot-build") : "";
+
+    let buildBadgeHtml = "";
+    if (walletAddress) {
+      if (status === "ready") buildBadgeHtml = '<span class="build-badge ready">READY</span>';
+      else if (status === "partial") buildBadgeHtml = '<span class="build-badge partial">PARTIAL</span>';
+      else buildBadgeHtml = '<span class="build-badge locked">LOCKED</span>';
+    }
+
+    return `
+      <div class="product-card ${cardClass} fade-in" onclick="openDetail('${p.model}')">
+        <span class="phase-badge ${isMiner ? 'p1' : 'p2'}">${isMiner ? 'MINER' : 'BOOST'}</span>
+        ${buildBadgeHtml}
+        <div class="product-img-wrap">
+          <img src="${p.image}" alt="${p.model}" onerror="this.style.display='none'">
+        </div>
+        <div class="product-body">
+          <div class="product-model">${p.model}</div>
+          <div class="product-codename">"${p.codename}"</div>
+          ${isMiner ? `
+          <div class="spec-row">
+            <div class="spec-item"><div class="spec-val">${p.mh} <span class="spec-unit">MH/s</span></div><div class="spec-label">Hashrate</div></div>
+            <div class="spec-item"><div class="spec-val">${p.w} <span class="spec-unit">W</span></div><div class="spec-label">Power</div></div>
+            <div class="spec-item"><div class="spec-val">${formatEff(p.eff)} <span class="spec-unit">MH/W</span></div><div class="spec-label">Efficiency</div></div>
+          </div>
+          ` : `
+          <div class="spec-row">
+            <div class="spec-item"><div class="spec-val" style="color:var(--green)">${p.effect}</div><div class="spec-label">Effect</div></div>
+          </div>
+          `}
+          <div class="assembly-cost">
+            <span style="color:var(--text-secondary)">Assembly Cost</span>
+            <span class="cost-val">${p.assemblyCost.toLocaleString()} hCASH</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+// ============================================================
+// DETAIL MODAL
+// ============================================================
+function openDetail(model) {
+  const p = SH_PRODUCTS.find(x => x.model === model);
+  if (!p) return;
+  const isMiner = p.category === "miner";
+  const modal = document.getElementById("detailModal");
+  const content = document.getElementById("modalContent");
+
+  // Default to first recipe
+  const currentRecipeIdx = 0;
+  renderModal(p, currentRecipeIdx);
+  modal.classList.add("open");
+}
+
+function renderModal(p, recipeIdx) {
+  const content = document.getElementById("modalContent");
+  const isMiner = p.category === "miner";
+  const recipe = p.recipes[recipeIdx];
+  const check = checkRecipe(recipe);
+  const canAfford = walletAddress ? hcashBalance >= p.assemblyCost : false;
+  const canBuild = check.status === "ready" && canAfford;
+
+  content.innerHTML = `
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <img class="modal-img" src="${p.image}" alt="${p.model}" onerror="this.style.display='none'">
+    <div class="modal-body">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;">
+        <div>
+          <div class="product-model">${p.model} "${p.codename}"</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);">${isMiner ? 'Refabricated Miner' : 'Boost Module — burned on removal'}</div>
+        </div>
+        <span class="phase-badge ${isMiner ? 'p1' : 'p2'}" style="position:static;">${isMiner ? 'MINER' : 'BOOST'}</span>
+      </div>
+
+      <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:1rem;">${p.desc}</p>
+
+      ${isMiner ? `
+      <div class="spec-row" style="margin-bottom:1rem;">
+        <div class="spec-item"><div class="spec-val">${p.mh} <span class="spec-unit">MH/s</span></div><div class="spec-label">Hashrate</div></div>
+        <div class="spec-item"><div class="spec-val">${p.w} <span class="spec-unit">W</span></div><div class="spec-label">Power</div></div>
+        <div class="spec-item"><div class="spec-val">${formatEff(p.eff)} <span class="spec-unit">MH/W</span></div><div class="spec-label">Efficiency</div></div>
+      </div>
+      ` : `
+      <div class="spec-row" style="margin-bottom:1rem;">
+        <div class="spec-item"><div class="spec-val" style="color:var(--green)">${p.effect}</div><div class="spec-label">Effect (burned on removal)</div></div>
+      </div>
+      `}
+
+      <div class="recipe-selector">
+        <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.4rem;">Assembly Recipe — ${p.recipes.length} available</div>
+        <select onchange="renderModal(SH_PRODUCTS.find(x=>x.model==='${p.model}'), this.selectedIndex)">
+          ${p.recipes.map((r, i) => {
+            const rc = checkRecipe(r);
+            const tag = walletAddress ? (rc.status === 'ready' ? ' ✓ Ready' : rc.status === 'partial' ? ' △ Partial' : '') : '';
+            return `<option ${i === recipeIdx ? 'selected' : ''}>${r.name}${tag}</option>`;
+          }).join("")}
+        </select>
+      </div>
+
+      <div class="materials-section">
+        <div class="materials-title">Required Materials</div>
+        ${recipe.inputs.map(input => {
+          const have = walletInventory[input.id] || 0;
+          const qtyClass = !walletAddress ? "need" : have >= input.qty ? "have" : have > 0 ? "partial" : "need";
+          const qtyText = walletAddress ? `${have}/${input.qty}` : `×${input.qty}`;
+          const checkMark = walletAddress && have >= input.qty ? " ✓" : "";
+          return `<div class="material-row">
+            <span class="material-name">${input.name}</span>
+            <span class="material-qty ${qtyClass}">${qtyText}${checkMark}</span>
+          </div>`;
+        }).join("")}
+        <div class="assembly-cost" style="margin-top:0.5rem;">
+          <span class="material-name">Assembly Fee</span>
+          <span class="cost-val">${p.assemblyCost.toLocaleString()} hCASH${walletAddress ? (canAfford ? ' ✓' : ' ✗') : ''}</span>
+        </div>
+        ${walletAddress ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.3rem;text-align:right;">Balance: ${hcashBalance.toLocaleString(undefined,{maximumFractionDigits:0})} hCASH</div>` : ''}
+      </div>
+
+      ${!walletAddress ? `
+        <button class="assemble-btn no-wallet" onclick="connectWallet()">Connect Wallet to Assemble</button>
+      ` : canBuild ? `
+        <button class="assemble-btn ready" onclick="assembleRig('${p.model}', ${recipeIdx})">Assemble ${p.model}</button>
+      ` : `
+        <button class="assemble-btn disabled" disabled>${check.status === 'ready' ? 'Insufficient hCASH' : 'Missing Materials'}</button>
+      `}
+
+      ${isMiner ? `
+      <div style="margin-top:1rem;padding-top:0.8rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:0.82rem;">
+        <span style="color:var(--text-secondary);">Efficiency vs. source materials</span>
+        <span style="font-family:var(--mono);font-weight:700;color:var(--green);">${computeGain(p, recipe)}</span>
+      </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function computeGain(product, recipe) {
+  let totalMh = 0, totalW = 0;
+  recipe.inputs.forEach(input => {
+    const m = getMiner(input.id);
+    if (m) { totalMh += m.mh * input.qty; totalW += m.w * input.qty; }
+  });
+  const inputEff = totalW > 0 ? totalMh / totalW : 0;
+  const gain = inputEff > 0 ? ((product.eff - inputEff) / inputEff * 100) : 0;
+  return gain > 0 ? `+${gain.toFixed(0)}% efficiency` : `${gain.toFixed(0)}%`;
+}
+
+function closeModal() {
+  document.getElementById("detailModal").classList.remove("open");
+}
+
+// Close modal on overlay click
+document.getElementById("detailModal").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// ============================================================
+// ASSEMBLE (On-chain transaction stub)
+// ============================================================
+async function assembleRig(model, recipeIdx) {
+  const p = SH_PRODUCTS.find(x => x.model === model);
+  if (!p || !walletAddress) return;
+
+  // In production: call rig_assembler contract's assemble function
+  // For now: show confirmation
+  const recipe = p.recipes[recipeIdx];
+  const inputNames = recipe.inputs.map(i => `${i.qty}× ${i.name}`).join(", ");
+
+  alert(
+    `⚙️ Assembly Transaction\n\n` +
+    `Build: ${p.model} "${p.codename}"\n` +
+    `Recipe: ${recipe.name}\n` +
+    `Burn: ${inputNames}\n` +
+    `Cost: ${p.assemblyCost.toLocaleString()} hCASH\n\n` +
+    `This would submit an on-chain transaction to the Rig Assembler contract on Avalanche C-Chain.\n\n` +
+    `(Contract integration pending — this is a simulator preview)`
+  );
+}
+
+// ============================================================
+// RENDER: INVENTORY
+// ============================================================
+function renderInventory() {
+  const container = document.getElementById("inventoryContent");
+
+  if (!walletAddress) {
+    container.innerHTML = `
+      <div class="no-wallet-msg">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">🔌</div>
+        <p>Connect your wallet to see your miner inventory.</p>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1.5rem;">Reads your on-chain NFT holdings on Avalanche C-Chain.</p>
+        <button class="connect-btn" onclick="connectWallet()">Connect Wallet</button>
+      </div>
+    `;
+    return;
+  }
+
+  const entries = Object.entries(walletInventory).filter(([,c]) => c > 0);
+  const totalMiners = entries.reduce((sum, [,c]) => sum + c, 0);
+
+  if (entries.length === 0) {
+    container.innerHTML = `
+      <div class="inventory-header">
+        <div class="inventory-stats">
+          <div class="inv-stat"><div class="val">${shortAddr(walletAddress)}</div><div class="label">Connected</div></div>
+          <div class="inv-stat"><div class="val">0</div><div class="label">Miners</div></div>
+          <div class="inv-stat"><div class="val">${hcashBalance.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">hCASH</div></div>
+        </div>
+      </div>
+      <div class="no-wallet-msg">
+        <p>No miner NFTs found in this wallet.</p>
+        <p style="font-size:0.82rem;color:var(--text-muted);">Purchase miners from the <a href="https://hashcash.club/marketplace" target="_blank" style="color:var(--accent);">Marketplace</a> or start mining at <a href="https://hashcash.club" target="_blank" style="color:var(--accent);">Club HashCash</a>.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="inventory-header">
+      <div class="inventory-stats">
+        <div class="inv-stat"><div class="val">${shortAddr(walletAddress)}</div><div class="label">Connected</div></div>
+        <div class="inv-stat"><div class="val">${totalMiners}</div><div class="label">Miners</div></div>
+        <div class="inv-stat"><div class="val">${hcashBalance.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">hCASH</div></div>
+      </div>
+    </div>
+    <div class="inventory-grid">
+      ${entries.map(([id, count]) => {
+        const m = getMiner(parseInt(id));
+        if (!m) return '';
+        return `
+          <div class="inv-card">
+            <span class="count-badge">×${count}</span>
+            <div class="inv-card-name">${m.name}</div>
+            <div class="inv-card-type">${m.type} — #${m.id}</div>
+            <div class="inv-card-stats">
+              <div class="inv-card-stat"><span class="v">${m.mh}</span> <span class="u">MH/s</span></div>
+              <div class="inv-card-stat"><span class="v">${m.w}</span> <span class="u">W</span></div>
+              <div class="inv-card-stat"><span class="v">${formatEff(m.eff)}</span> <span class="u">MH/W</span></div>
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+// ============================================================
+// RENDER: COMPARE TABLE
+// ============================================================
+function renderCompareTable() {
+  const body = document.getElementById("compareBody");
+  const all = [];
+  MINERS.forEach(m => all.push({ tier: m.tier, name: m.name, type: m.type, mh: m.mh, w: m.w, eff: m.eff, price: m.price, isSH: false }));
+  SH_PRODUCTS.filter(p => p.category === "miner").forEach(p => all.push({
+    tier: "SH", name: `${p.model} "${p.codename}"`, type: `Phase ${p.phase} Refab`,
+    mh: p.mh, w: p.w, eff: p.eff, price: p.assemblyCost, isSH: true
+  }));
+  all.sort((a, b) => {
+    const ea = a.eff === Infinity ? 9999 : a.eff;
+    const eb = b.eff === Infinity ? 9999 : b.eff;
+    return eb - ea;
+  });
+  const maxEff = 2.0;
+  body.innerHTML = all.map(e => {
+    const tb = e.isSH ? "tier-sh" : `tier-${e.tier.toLowerCase()}`;
+    const effD = e.eff === Infinity ? "∞" : e.eff.toFixed(3);
+    const bw = Math.min((e.eff === Infinity ? 2.0 : e.eff) / maxEff * 80, 80);
+    const ps = e.price ? e.price.toLocaleString() : "—";
+    return `<tr class="${e.isSH ? 'sh-row' : ''}">
+      <td><span class="tier-badge ${tb}">${e.isSH ? 'SH' : e.tier}</span></td>
+      <td>${e.name}</td>
+      <td style="color:var(--text-muted)">${e.type}</td>
+      <td class="mono">${e.mh.toLocaleString()}</td>
+      <td class="mono">${e.w.toLocaleString()}</td>
+      <td class="mono">${effD} <span class="eff-bar" style="width:${bw}px;${e.isSH?'background:var(--accent);':''}"></span></td>
+      <td class="mono">${ps}</td>
+    </tr>`;
+  }).join("");
+}
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+document.querySelectorAll(".sim-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".sim-tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById(`panel-${tab.dataset.tab}`).classList.add("active");
+  });
+});
+
+// ============================================================
+// PHASE FILTER
+// ============================================================
+document.querySelectorAll("#phaseFilter .filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#phaseFilter .filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    activePhaseFilter = btn.dataset.phase;
+    renderCatalog();
+  });
+});
+
+// ============================================================
+// FILTER BTN STYLE
+// ============================================================
+const filterStyle = document.createElement("style");
+filterStyle.textContent = `.filter-btn{padding:0.5rem 1rem;font-size:0.78rem;font-weight:500;color:var(--text-muted);background:var(--bg-card);border:none;cursor:pointer;transition:all 0.2s;font-family:var(--sans);}.filter-btn:hover{color:var(--text-secondary);}.filter-btn.active{background:var(--accent);color:var(--bg-primary);}.filter-btn+.filter-btn{border-left:1px solid var(--border);}`;
+document.head.appendChild(filterStyle);
+
+// ============================================================
+// AUTO-CONNECT API
+// ============================================================
+async function autoConnectAPI(key) {
+  try {
+    document.getElementById("apiStatus").innerHTML = '<span class="api-dot static"></span><span>CONNECTING...</span>';
+    const res = await fetch("https://api.hashcash.club/api/v1/public/contracts", { headers: { "x-api-key": key } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.contracts) {
+      window._liveContracts = data.contracts;
+      // Update MINERS from live data
+      data.contracts.filter(c => c.category === "miner_nft").forEach(c => {
+        const existing = MINERS.find(m => m.id === c.minerIndex);
+        if (existing && c.minerStats) {
+          existing.mh = c.minerStats.hashrateMhps || existing.mh;
+          existing.w = c.minerStats.powerWatts || existing.w;
+          existing.eff = existing.w > 0 ? existing.mh / existing.w : (existing.mh > 0 ? Infinity : 0);
+          existing.name = c.name || existing.name;
+        }
+      });
+      apiKey = key;
+      apiConnected = true;
+      const mc = data.contracts.filter(c => c.category === "miner_nft").length;
+      const rc = data.contracts.filter(c => c.category === "rig_assembler").length;
+      document.getElementById("apiStatus").innerHTML = `<span class="api-dot live"></span><span>LIVE — ${mc} miners, ${rc} assemblers — Chain ${data.meta?.chainId || '43114'}</span>`;
+      renderCatalog();
+      renderCompareTable();
+    }
+  } catch (err) {
+    document.getElementById("apiStatus").innerHTML = '<span class="api-dot static"></span><span>STATIC DATA — Post-halving snapshot</span>';
+  }
+}
+
+// ============================================================
+// LISTEN FOR WALLET EVENTS
+// ============================================================
+if (window.ethereum) {
+  window.ethereum.on("accountsChanged", (accounts) => {
+    if (accounts.length === 0) {
+      walletAddress = null;
+      walletInventory = {};
+      hcashBalance = 0;
+      document.getElementById("walletBtn").innerHTML = '<span class="dot"></span> Connect Wallet';
+      document.getElementById("walletBtn").classList.remove("connected");
+    } else {
+      walletAddress = accounts[0];
+      document.getElementById("walletBtn").innerHTML = `<span class="dot"></span> ${shortAddr(walletAddress)}`;
+      loadWalletInventory().then(() => { renderCatalog(); renderInventory(); });
+    }
+    renderCatalog();
+    renderInventory();
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderCatalog();
+renderInventory();
+renderCompareTable();
+autoConnectAPI("hc_live_fMbFO3dCRSA-Aq7FNU20o-nvb7nBvIsc");
+</script>
+</body>
+</html>
