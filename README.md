@@ -9,6 +9,8 @@
   The first refabrication vendor for <a href="https://hashcash.club">Club HashCash</a> on Avalanche.
 </p>
 
+**[Live Demo](https://yoshisfzu.github.io/second-hash/)** | **[Trade-In Simulator](https://yoshisfzu.github.io/second-hash/simulator.html)**
+
 ---
 
 ## What is Second Hash?
@@ -72,10 +74,21 @@ This creates three simultaneous benefits: NFT supply compression, hCASH deflatio
 
 ## Deliverables
 
-### Website
-A fully responsive single-page product site showcasing all products, specifications, trade-in mechanics, and brand story.
+### Product Website
+A fully responsive single-page site showcasing all products, specifications, trade-in mechanics, and brand story.
 
-**Open locally**: `site/index.html`
+**Live**: [https://yoshisfzu.github.io/second-hash/](https://yoshisfzu.github.io/second-hash/)
+
+### Trade-In Simulator (dApp)
+An interactive web application that connects to the Club HashCash Builder API and your wallet:
+
+- **Product Catalog** — Browse all 11 SH products with specs, images, and assembly costs
+- **Wallet Integration** — MetaMask / Core Wallet on Avalanche C-Chain (auto chain-switch)
+- **Recipe Matching** — Checks your NFT inventory against 26+ assembly recipes (Ready / Partial / Missing)
+- **Efficiency Map** — Compare SH products vs. all legacy miners with interactive filters
+- **On-Chain Assembly** — Full tx flow: ERC-20 approve, ERC-1155 setApprovalForAll, assemble, confirmation with Snowtrace link
+
+**Live**: [https://yoshisfzu.github.io/second-hash/simulator.html](https://yoshisfzu.github.io/second-hash/simulator.html)
 
 ### Whitepaper
 Comprehensive technical document covering the full product lineup, ecosystem analysis, and roadmap.
@@ -99,6 +112,7 @@ second-hash/
 ├── README.md
 ├── site/
 │   ├── index.html              # Product website
+│   ├── simulator.html          # Trade-In Simulator dApp
 │   └── images/                 # Product renders & branding
 │       ├── SH-R1_Reclaim.png
 │       ├── SH-R2_Reforge.png
@@ -138,7 +152,10 @@ second-hash/
 
 ## Technical Notes
 
-- The website is a single self-contained HTML file with embedded CSS and vanilla JavaScript — no build tools, no dependencies, no frameworks
+- Both the website and simulator are single self-contained HTML files — no build tools, no dependencies, no frameworks
+- The Trade-In Simulator connects to the Club HashCash Builder API (`api.hashcash.club`) for live contract data
+- Wallet integration via `window.ethereum` (EIP-1193) supports MetaMask and Core Wallet on Avalanche C-Chain (chainId 43114)
+- On-chain assembly uses raw ABI encoding: ERC-20 `approve`, ERC-1155 `setApprovalForAll`, and Rig Assembler `assemble` calls
 - All product images are AI-generated photorealistic 3D renders with a unified visual style (warm amber gradient, copper rim lighting, brushed steel chassis)
 - The whitepaper PDF is generated programmatically with a dark theme matching the website aesthetic
 
