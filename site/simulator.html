@@ -216,22 +216,49 @@ nav .logo img { height: 32px; width: 32px; object-fit: contain; }
 }
 .connect-btn:hover { opacity: 0.85; }
 
-/* ===== COMPARE TAB ===== */
-.compare-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; }
+/* ===== COMPARE TAB (Efficiency Map) ===== */
+.map-header { margin-bottom: 2rem; }
+.map-header h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem; }
+.map-header p { color: var(--text-secondary); font-size: 0.88rem; }
+
+.summary-row { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+.summary-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.5rem; flex: 1; min-width: 140px; }
+.summary-card .label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.3rem; }
+.summary-card .val { font-family: var(--mono); font-size: 1.3rem; font-weight: 700; }
+.summary-card .sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+.map-filter { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 1.5rem; width: fit-content; }
+
+.compare-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
 .compare-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-.compare-table th { font-family: var(--mono); font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding: 0.8rem 1rem; text-align: left; background: var(--bg-card); border-bottom: 1px solid var(--border); white-space: nowrap; position: sticky; top: 0; }
+.compare-table th { font-family: var(--mono); font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding: 0.75rem 1rem; text-align: left; background: var(--bg-card); border-bottom: 1px solid var(--border); white-space: nowrap; position: sticky; top: 0; }
 .compare-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
 .compare-table tr:hover td { background: var(--bg-highlight); }
 .compare-table .mono { font-family: var(--mono); font-weight: 700; }
-.compare-table .sh-row td { background: rgba(212,146,74,0.06); }
-.compare-table .sh-row:hover td { background: rgba(212,146,74,0.12); }
-.tier-badge { font-family: var(--mono); font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 2px; display: inline-block; }
-.tier-s { background: rgba(255,107,107,0.15); color: #ff6b6b; }
-.tier-a { background: rgba(61,220,132,0.15); color: var(--green); }
-.tier-b { background: rgba(74,144,217,0.15); color: var(--blue); }
-.tier-c { background: rgba(92,96,112,0.15); color: var(--text-muted); }
-.tier-sh { background: rgba(212,146,74,0.2); color: var(--accent); }
-.eff-bar { display: inline-block; height: 4px; border-radius: 2px; background: var(--accent); vertical-align: middle; margin-left: 6px; }
+.compare-table .sh-row td { background: rgba(212,146,74,0.04); }
+.compare-table .sh-row:hover td { background: rgba(212,146,74,0.1); }
+
+.rank { font-family: var(--mono); font-size: 0.75rem; font-weight: 700; color: var(--text-muted); width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--bg-highlight); }
+.rank.top3 { background: rgba(212,146,74,0.15); color: var(--accent); }
+.rank.sh { background: rgba(212,146,74,0.2); color: var(--accent); border: 1px solid var(--accent-dim); }
+
+.origin-badge { font-family: var(--mono); font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 3px; display: inline-block; }
+.origin-sh { background: rgba(212,146,74,0.2); color: var(--accent); }
+.origin-legacy { background: rgba(92,96,112,0.15); color: var(--text-muted); }
+
+.eff-cell { display: flex; align-items: center; gap: 8px; }
+.eff-val { font-family: var(--mono); font-weight: 700; min-width: 52px; }
+.eff-bar-wrap { flex: 1; max-width: 100px; height: 8px; background: var(--bg-highlight); border-radius: 4px; overflow: hidden; }
+.eff-bar { height: 100%; border-radius: 4px; transition: width 0.3s; }
+.eff-bar.sh { background: linear-gradient(90deg, var(--accent-dim), var(--accent)); }
+.eff-bar.legacy { background: var(--border-accent); }
+.eff-bar.top { background: linear-gradient(90deg, var(--accent), var(--green)); }
+
+.cost-cell { font-family: var(--mono); font-weight: 700; }
+.cost-label { font-size: 0.62rem; color: var(--text-muted); font-weight: 400; font-family: var(--sans); }
+
+.map-note { margin-top: 1.5rem; padding: 1rem 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; }
+.map-note strong { color: var(--text-secondary); }
 
 /* ===== DETAIL MODAL ===== */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; display: none; align-items: center; justify-content: center; padding: 2rem; }
@@ -328,15 +355,34 @@ footer .footer-links a:hover { color: var(--accent); }
     <div id="inventoryContent"></div>
   </div>
 
-  <!-- COMPARE TAB -->
+  <!-- COMPARE TAB (Efficiency Map) -->
   <div class="tab-panel" id="panel-compare">
+    <div class="map-header">
+      <h2>Efficiency Map</h2>
+      <p>Compare Second Hash refabricated products against legacy miners — sorted by MH/W efficiency.</p>
+    </div>
+
+    <div class="summary-row" id="summaryRow"></div>
+
+    <div class="map-filter" id="mapFilter">
+      <button class="filter-btn active" data-map="all">All</button>
+      <button class="filter-btn" data-map="sh">Second Hash Only</button>
+      <button class="filter-btn" data-map="legacy">Legacy Miners Only</button>
+    </div>
+
     <div class="compare-table-wrap">
       <table class="compare-table" id="compareTable">
         <thead><tr>
-          <th>Tier</th><th>Name</th><th>Type</th><th>Hashrate</th><th>Power</th><th>Efficiency</th><th>Price (hCASH)</th>
+          <th>#</th><th>Origin</th><th>Name</th><th>Type</th><th>Hashrate</th><th>Power</th><th>Efficiency (MH/W)</th><th>Cost (hCASH)</th>
         </tr></thead>
         <tbody id="compareBody"></tbody>
       </table>
+    </div>
+
+    <div class="map-note">
+      <strong>Reading this table:</strong> Efficiency (MH/W) = Hashrate ÷ Power. Higher is better — more hashes per watt.
+      Second Hash products are highlighted in <span style="color:var(--accent)">copper</span>. Bars show relative efficiency — wider = more efficient.
+      Cost column shows assembly cost for SH products and market price for legacy miners.
     </div>
   </div>
 </div>
@@ -519,6 +565,7 @@ let hcashBalance = 0;
 let apiKey = null;
 let apiConnected = false;
 let activePhaseFilter = "all";
+let activeMapFilter = "all";
 
 // ============================================================
 // HELPERS
@@ -943,31 +990,82 @@ function renderInventory() {
 // ============================================================
 function renderCompareTable() {
   const body = document.getElementById("compareBody");
+  const summaryRow = document.getElementById("summaryRow");
   const all = [];
-  MINERS.forEach(m => all.push({ tier: m.tier, name: m.name, type: m.type, mh: m.mh, w: m.w, eff: m.eff, price: m.price, isSH: false }));
-  SH_PRODUCTS.filter(p => p.category === "miner").forEach(p => all.push({
-    tier: "SH", name: `${p.model} "${p.codename}"`, type: `Phase ${p.phase} Refab`,
-    mh: p.mh, w: p.w, eff: p.eff, price: p.assemblyCost, isSH: true
-  }));
+
+  if (activeMapFilter !== "sh") {
+    MINERS.forEach(m => all.push({ name: m.name, type: m.type, mh: m.mh, w: m.w, eff: m.eff, price: m.price, isSH: false }));
+  }
+  if (activeMapFilter !== "legacy") {
+    SH_PRODUCTS.filter(p => p.category === "miner").forEach(p => all.push({
+      name: `${p.model} "${p.codename}"`, type: "Refabricated Miner",
+      mh: p.mh, w: p.w, eff: p.eff, price: p.assemblyCost, isSH: true
+    }));
+  }
+
   all.sort((a, b) => {
     const ea = a.eff === Infinity ? 9999 : a.eff;
     const eb = b.eff === Infinity ? 9999 : b.eff;
     return eb - ea;
   });
-  const maxEff = 2.0;
-  body.innerHTML = all.map(e => {
-    const tb = e.isSH ? "tier-sh" : `tier-${e.tier.toLowerCase()}`;
-    const effD = e.eff === Infinity ? "∞" : e.eff.toFixed(3);
-    const bw = Math.min((e.eff === Infinity ? 2.0 : e.eff) / maxEff * 80, 80);
-    const ps = e.price ? e.price.toLocaleString() : "—";
+
+  // Summary cards
+  const shMiners = SH_PRODUCTS.filter(p => p.category === "miner");
+  const bestSH = shMiners.reduce((best, p) => p.eff > best.eff ? p : best, shMiners[0]);
+  const legacySorted = [...MINERS].sort((a, b) => b.eff - a.eff);
+  const bestLegacy = legacySorted[0];
+  const advantage = bestLegacy && bestLegacy.eff > 0 ? ((bestSH.eff - bestLegacy.eff) / bestLegacy.eff * 100) : 0;
+
+  summaryRow.innerHTML = `
+    <div class="summary-card">
+      <div class="label">Best SH Efficiency</div>
+      <div class="val" style="color:var(--accent)">${bestSH.eff.toFixed(3)} MH/W</div>
+      <div class="sub">${bestSH.model} "${bestSH.codename}"</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Best Legacy Efficiency</div>
+      <div class="val">${bestLegacy ? bestLegacy.eff.toFixed(3) : '—'} MH/W</div>
+      <div class="sub">${bestLegacy ? bestLegacy.name : '—'}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">SH Advantage</div>
+      <div class="val" style="color:var(--green)">+${advantage.toFixed(1)}%</div>
+      <div class="sub">Top SH vs Top Legacy</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">SH Products</div>
+      <div class="val" style="color:var(--accent)">${shMiners.length}</div>
+      <div class="sub">Refabricated Miners</div>
+    </div>
+  `;
+
+  // Table
+  const maxEff = Math.max(...all.map(e => e.eff === Infinity ? 1 : e.eff), 1);
+
+  body.innerHTML = all.map((e, i) => {
+    const rank = i + 1;
+    const isTop3 = rank <= 3;
+    const rankClass = e.isSH ? "sh" : isTop3 ? "top3" : "";
+    const barPct = Math.min((e.eff / maxEff) * 100, 100);
+    const barClass = e.isSH ? (isTop3 ? "top" : "sh") : "legacy";
+    const effStr = e.eff === Infinity ? "∞" : e.eff.toFixed(3);
+    const costStr = e.price ? e.price.toLocaleString() : "—";
+    const costLabel = e.isSH ? "assembly" : "";
+
     return `<tr class="${e.isSH ? 'sh-row' : ''}">
-      <td><span class="tier-badge ${tb}">${e.isSH ? 'SH' : e.tier}</span></td>
-      <td>${e.name}</td>
+      <td><span class="rank ${rankClass}">${rank}</span></td>
+      <td><span class="origin-badge ${e.isSH ? 'origin-sh' : 'origin-legacy'}">${e.isSH ? 'SH' : 'LEGACY'}</span></td>
+      <td style="font-weight:${e.isSH ? '600' : '400'};${e.isSH ? 'color:var(--text-primary)' : ''}">${e.name}</td>
       <td style="color:var(--text-muted)">${e.type}</td>
       <td class="mono">${e.mh.toLocaleString()}</td>
       <td class="mono">${e.w.toLocaleString()}</td>
-      <td class="mono">${effD} <span class="eff-bar" style="width:${bw}px;${e.isSH?'background:var(--accent);':''}"></span></td>
-      <td class="mono">${ps}</td>
+      <td>
+        <div class="eff-cell">
+          <span class="eff-val">${effStr}</span>
+          <div class="eff-bar-wrap"><div class="eff-bar ${barClass}" style="width:${barPct}%"></div></div>
+        </div>
+      </td>
+      <td class="cost-cell">${costStr} ${costLabel ? `<span class="cost-label">${costLabel}</span>` : ''}</td>
     </tr>`;
   }).join("");
 }
@@ -993,6 +1091,18 @@ document.querySelectorAll("#phaseFilter .filter-btn").forEach(btn => {
     btn.classList.add("active");
     activePhaseFilter = btn.dataset.phase;
     renderCatalog();
+  });
+});
+
+// ============================================================
+// MAP FILTER (Efficiency Map)
+// ============================================================
+document.querySelectorAll("#mapFilter .filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#mapFilter .filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    activeMapFilter = btn.dataset.map;
+    renderCompareTable();
   });
 });
 
