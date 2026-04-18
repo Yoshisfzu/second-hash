@@ -283,6 +283,34 @@ footer .footer-links { margin-top: 1rem; display: flex; gap: 1.5rem; justify-con
 footer .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 0.78rem; transition: color 0.2s; }
 footer .footer-links a:hover { color: var(--accent); }
 
+/* ===== TX OVERLAY ===== */
+.tx-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 300; display: none; align-items: center; justify-content: center; padding: 2rem; }
+.tx-overlay.open { display: flex; }
+.tx-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; max-width: 420px; width: 100%; padding: 2rem; text-align: center; }
+.tx-box h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.8rem; }
+.tx-box p { color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1rem; }
+.tx-box .tx-hash { font-family: var(--mono); font-size: 0.75rem; color: var(--accent); word-break: break-all; background: var(--bg-highlight); padding: 0.5rem 0.8rem; border-radius: 4px; margin-bottom: 1rem; }
+.tx-box .tx-hash a { color: var(--accent); text-decoration: none; }
+.tx-box .tx-hash a:hover { text-decoration: underline; }
+
+.tx-steps { text-align: left; margin: 1.5rem 0; }
+.tx-step { display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 0; font-size: 0.85rem; }
+.tx-step .step-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 700; flex-shrink: 0; }
+.tx-step .step-icon.pending { background: var(--bg-highlight); color: var(--text-muted); }
+.tx-step .step-icon.active { background: var(--accent); color: var(--bg-primary); animation: pulse 1.5s infinite; }
+.tx-step .step-icon.done { background: var(--green); color: #000; }
+.tx-step .step-icon.error { background: var(--red); color: #fff; }
+.tx-step .step-label { color: var(--text-secondary); }
+.tx-step .step-label.active { color: var(--text-primary); font-weight: 500; }
+.tx-step .step-label.done { color: var(--green); }
+.tx-step .step-label.error { color: var(--red); }
+
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.tx-close-btn { margin-top: 1rem; padding: 0.6rem 2rem; background: var(--bg-highlight); color: var(--text-primary); border: 1px solid var(--border); border-radius: 4px; font-size: 0.85rem; cursor: pointer; font-family: var(--sans); transition: all 0.2s; }
+.tx-close-btn:hover { background: var(--border); }
+.tx-close-btn.success { background: var(--green); color: #000; border-color: var(--green); }
+
 /* ===== UTILS ===== */
 .hidden { display: none !important; }
 .fade-in { animation: fadeIn 0.3s ease-out; }
@@ -390,6 +418,11 @@ footer .footer-links a:hover { color: var(--accent); }
 <!-- DETAIL / ASSEMBLE MODAL -->
 <div class="modal-overlay" id="detailModal">
   <div class="modal-content" id="modalContent" style="position:relative;"></div>
+</div>
+
+<!-- TX STATUS OVERLAY -->
+<div class="tx-overlay" id="txOverlay">
+  <div class="tx-box" id="txBox"></div>
 </div>
 
 <footer>
@@ -896,26 +929,297 @@ document.getElementById("detailModal").addEventListener("click", (e) => {
 });
 
 // ============================================================
-// ASSEMBLE (On-chain transaction stub)
+// ASSEMBLE (On-chain transaction flow)
 // ============================================================
+// Known contract addresses (Avalanche C-Chain)
+const HCASH_TOKEN = "0xBa5444409257967E5E50b113C395A766B0678C03";
+
+// ABI function selectors
+const SEL = {
+  // ERC-20
+  approve: "0x095ea7b3",          // approve(address,uint256)
+  allowance: "0xdd62ed3e",        // allowance(address,address)
+  // ERC-1155
+  setApprovalForAll: "0xa22cb465", // setApprovalForAll(address,bool)
+  isApprovedForAll: "0xe985e9c5",  // isApprovedForAll(address,address)
+  // Rig Assembler (standard pattern)
+  assemble: "0x2bef5e38",         // assemble(uint256,address[],uint256[],uint256[])
+};
+
+const MAX_UINT256 = "0x" + "f".repeat(64);
+
+function pad(val, bytes = 32) { return val.replace("0x","").padStart(bytes * 2, "0"); }
+function encodeUint(n) { return BigInt(n).toString(16).padStart(64, "0"); }
+function encodeAddr(a) { return a.replace("0x","").padStart(64, "0").toLowerCase(); }
+
+// TX Overlay helpers
+function showTxOverlay(html) {
+  document.getElementById("txBox").innerHTML = html;
+  document.getElementById("txOverlay").classList.add("open");
+}
+function closeTxOverlay() {
+  document.getElementById("txOverlay").classList.remove("open");
+}
+document.getElementById("txOverlay").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) closeTxOverlay();
+});
+
+function txStepHtml(steps, currentStep, error = null) {
+  return steps.map((s, i) => {
+    let iconClass, labelClass, icon;
+    if (error && i === currentStep) {
+      iconClass = "error"; labelClass = "error"; icon = "✕";
+    } else if (i < currentStep) {
+      iconClass = "done"; labelClass = "done"; icon = "✓";
+    } else if (i === currentStep) {
+      iconClass = "active"; labelClass = "active"; icon = (i + 1);
+    } else {
+      iconClass = "pending"; labelClass = ""; icon = (i + 1);
+    }
+    return `<div class="tx-step">
+      <div class="step-icon ${iconClass}">${icon}</div>
+      <div class="step-label ${labelClass}">${s}</div>
+    </div>`;
+  }).join("");
+}
+
 async function assembleRig(model, recipeIdx) {
   const p = SH_PRODUCTS.find(x => x.model === model);
   if (!p || !walletAddress) return;
 
-  // In production: call rig_assembler contract's assemble function
-  // For now: show confirmation
   const recipe = p.recipes[recipeIdx];
   const inputNames = recipe.inputs.map(i => `${i.qty}× ${i.name}`).join(", ");
 
-  alert(
-    `⚙️ Assembly Transaction\n\n` +
-    `Build: ${p.model} "${p.codename}"\n` +
-    `Recipe: ${recipe.name}\n` +
-    `Burn: ${inputNames}\n` +
-    `Cost: ${p.assemblyCost.toLocaleString()} hCASH\n\n` +
-    `This would submit an on-chain transaction to the Rig Assembler contract on Avalanche C-Chain.\n\n` +
-    `(Contract integration pending — this is a simulator preview)`
-  );
+  // Find rig_assembler contract from API data
+  let assemblerAddress = null;
+  if (window._liveContracts) {
+    const assemblers = window._liveContracts.filter(c => c.category === "rig_assembler");
+    if (assemblers.length > 0) assemblerAddress = assemblers[0].address;
+  }
+
+  // Find NFT contract addresses for input miners
+  const inputContracts = [];
+  if (window._liveContracts) {
+    for (const input of recipe.inputs) {
+      const nft = window._liveContracts.find(c => c.category === "miner_nft" && c.minerIndex === input.id);
+      if (nft) inputContracts.push({ ...input, contractAddress: nft.address });
+      else inputContracts.push({ ...input, contractAddress: null });
+    }
+  }
+
+  const steps = [
+    "Approve hCASH spending",
+    "Approve NFT transfers",
+    "Submit assembly transaction",
+    "Waiting for confirmation"
+  ];
+
+  // If no assembler found, show info overlay
+  if (!assemblerAddress) {
+    showTxOverlay(`
+      <h3>⚙️ Assembly Preview</h3>
+      <p style="text-align:left;font-size:0.82rem;">
+        <strong>Build:</strong> ${p.model} "${p.codename}"<br>
+        <strong>Recipe:</strong> ${recipe.name}<br>
+        <strong>Burn:</strong> ${inputNames}<br>
+        <strong>Cost:</strong> ${p.assemblyCost.toLocaleString()} hCASH
+      </p>
+      <div class="tx-steps">${txStepHtml(steps, -1)}</div>
+      <p style="font-size:0.82rem;color:var(--accent);">
+        Rig Assembler contract not yet detected from API.<br>
+        Connect to the live API to enable on-chain assembly.
+      </p>
+      <button class="tx-close-btn" onclick="closeTxOverlay()">Close</button>
+    `);
+    return;
+  }
+
+  // === STEP 0: Approve hCASH ===
+  let currentStep = 0;
+  showTxOverlay(`
+    <h3>⚙️ Assembling ${p.model}</h3>
+    <p>Recipe: ${recipe.name}</p>
+    <div class="tx-steps">${txStepHtml(steps, currentStep)}</div>
+    <p style="font-size:0.82rem;">Approve ${p.assemblyCost.toLocaleString()} hCASH for assembly...</p>
+  `);
+
+  try {
+    // Check existing allowance
+    const allowanceData = SEL.allowance + encodeAddr(walletAddress) + encodeAddr(assemblerAddress);
+    const currentAllowance = await window.ethereum.request({
+      method: "eth_call",
+      params: [{ to: HCASH_TOKEN, data: allowanceData }, "latest"]
+    });
+    const allowanceBig = BigInt(currentAllowance);
+    const costWei = BigInt(p.assemblyCost) * BigInt(10 ** 18);
+
+    if (allowanceBig < costWei) {
+      // Need approval
+      const approveData = SEL.approve + encodeAddr(assemblerAddress) + MAX_UINT256.slice(2);
+      const approveTx = await window.ethereum.request({
+        method: "eth_sendTransaction",
+        params: [{ from: walletAddress, to: HCASH_TOKEN, data: approveData }]
+      });
+      // Wait for confirmation
+      await waitForTx(approveTx);
+    }
+  } catch (err) {
+    showTxOverlay(`
+      <h3>⚙️ Assembling ${p.model}</h3>
+      <div class="tx-steps">${txStepHtml(steps, currentStep, true)}</div>
+      <p style="color:var(--red);font-size:0.85rem;">${err.code === 4001 ? 'Transaction rejected by user.' : 'hCASH approval failed: ' + (err.message || err)}</p>
+      <button class="tx-close-btn" onclick="closeTxOverlay()">Close</button>
+    `);
+    return;
+  }
+
+  // === STEP 1: Approve NFT transfers ===
+  currentStep = 1;
+  showTxOverlay(`
+    <h3>⚙️ Assembling ${p.model}</h3>
+    <p>Recipe: ${recipe.name}</p>
+    <div class="tx-steps">${txStepHtml(steps, currentStep)}</div>
+    <p style="font-size:0.82rem;">Approving NFT transfers to assembler...</p>
+  `);
+
+  try {
+    const uniqueContracts = [...new Set(inputContracts.filter(c => c.contractAddress).map(c => c.contractAddress))];
+    for (const nftAddr of uniqueContracts) {
+      // Check if already approved
+      const checkData = SEL.isApprovedForAll + encodeAddr(walletAddress) + encodeAddr(assemblerAddress);
+      const isApproved = await window.ethereum.request({
+        method: "eth_call",
+        params: [{ to: nftAddr, data: checkData }, "latest"]
+      });
+      if (BigInt(isApproved) === BigInt(0)) {
+        // Need setApprovalForAll(assemblerAddress, true)
+        const approveData = SEL.setApprovalForAll + encodeAddr(assemblerAddress) + encodeUint(1);
+        const tx = await window.ethereum.request({
+          method: "eth_sendTransaction",
+          params: [{ from: walletAddress, to: nftAddr, data: approveData }]
+        });
+        await waitForTx(tx);
+      }
+    }
+  } catch (err) {
+    showTxOverlay(`
+      <h3>⚙️ Assembling ${p.model}</h3>
+      <div class="tx-steps">${txStepHtml(steps, currentStep, true)}</div>
+      <p style="color:var(--red);font-size:0.85rem;">${err.code === 4001 ? 'Transaction rejected by user.' : 'NFT approval failed: ' + (err.message || err)}</p>
+      <button class="tx-close-btn" onclick="closeTxOverlay()">Close</button>
+    `);
+    return;
+  }
+
+  // === STEP 2: Submit Assembly TX ===
+  currentStep = 2;
+  showTxOverlay(`
+    <h3>⚙️ Assembling ${p.model}</h3>
+    <p>Recipe: ${recipe.name}</p>
+    <div class="tx-steps">${txStepHtml(steps, currentStep)}</div>
+    <p style="font-size:0.82rem;">Submitting assembly transaction...</p>
+  `);
+
+  let txHash;
+  try {
+    // Encode assemble call: assemble(recipeId, inputContracts[], inputAmounts[], inputTokenIds[])
+    // Build ABI-encoded calldata for a typical rig assembler
+    const addrs = inputContracts.map(c => c.contractAddress || "0x" + "0".repeat(40));
+    const amounts = inputContracts.map(c => c.qty);
+    const tokenIds = inputContracts.map(c => c.id);
+
+    // Dynamic encoding: assemble(address[],uint256[],uint256[],uint256)
+    // Offset for first array (4 * 32 = 128)
+    const n = addrs.length;
+    let data = "0x";
+    // Function selector — use a generic assemble signature
+    // keccak256("assemble(address[],uint256[],uint256[],uint256)") first 4 bytes
+    data += "8bf64259";
+    // Offsets for 3 dynamic arrays + 1 static uint256
+    data += encodeUint(128);    // offset: address[]
+    data += encodeUint(128 + 32 + n * 32);  // offset: uint256[] amounts
+    data += encodeUint(128 + 2 * (32 + n * 32));  // offset: uint256[] tokenIds
+    data += encodeUint(BigInt(p.assemblyCost) * BigInt(10 ** 18));  // assemblyCost
+    // address[]
+    data += encodeUint(n);
+    addrs.forEach(a => data += encodeAddr(a));
+    // uint256[] amounts
+    data += encodeUint(n);
+    amounts.forEach(a => data += encodeUint(a));
+    // uint256[] tokenIds
+    data += encodeUint(n);
+    tokenIds.forEach(id => data += encodeUint(id));
+
+    txHash = await window.ethereum.request({
+      method: "eth_sendTransaction",
+      params: [{
+        from: walletAddress,
+        to: assemblerAddress,
+        data: data
+      }]
+    });
+  } catch (err) {
+    showTxOverlay(`
+      <h3>⚙️ Assembling ${p.model}</h3>
+      <div class="tx-steps">${txStepHtml(steps, currentStep, true)}</div>
+      <p style="color:var(--red);font-size:0.85rem;">${err.code === 4001 ? 'Transaction rejected by user.' : 'Assembly transaction failed: ' + (err.message || err)}</p>
+      <button class="tx-close-btn" onclick="closeTxOverlay()">Close</button>
+    `);
+    return;
+  }
+
+  // === STEP 3: Wait for confirmation ===
+  currentStep = 3;
+  showTxOverlay(`
+    <h3>⚙️ Assembling ${p.model}</h3>
+    <p>Recipe: ${recipe.name}</p>
+    <div class="tx-steps">${txStepHtml(steps, currentStep)}</div>
+    <div class="tx-hash"><a href="https://snowtrace.io/tx/${txHash}" target="_blank" rel="noopener">${txHash}</a></div>
+    <p style="font-size:0.82rem;">Waiting for on-chain confirmation...</p>
+  `);
+
+  try {
+    const receipt = await waitForTx(txHash);
+    if (receipt && receipt.status === "0x1") {
+      // Success
+      showTxOverlay(`
+        <h3 style="color:var(--green);">✓ Assembly Complete!</h3>
+        <p>${p.model} "${p.codename}" has been assembled.</p>
+        <div class="tx-steps">${txStepHtml(steps, 4)}</div>
+        <div class="tx-hash"><a href="https://snowtrace.io/tx/${txHash}" target="_blank" rel="noopener">${txHash}</a></div>
+        <button class="tx-close-btn success" onclick="closeTxOverlay(); loadWalletInventory().then(()=>{renderCatalog();renderInventory();});">View Updated Inventory</button>
+      `);
+    } else {
+      showTxOverlay(`
+        <h3>⚙️ Assembling ${p.model}</h3>
+        <div class="tx-steps">${txStepHtml(steps, currentStep, true)}</div>
+        <div class="tx-hash"><a href="https://snowtrace.io/tx/${txHash}" target="_blank" rel="noopener">${txHash}</a></div>
+        <p style="color:var(--red);font-size:0.85rem;">Transaction reverted on-chain. Check Snowtrace for details.</p>
+        <button class="tx-close-btn" onclick="closeTxOverlay()">Close</button>
+      `);
+    }
+  } catch (err) {
+    showTxOverlay(`
+      <h3>⚙️ Assembling ${p.model}</h3>
+      <div class="tx-steps">${txStepHtml(steps, currentStep, true)}</div>
+      <div class="tx-hash"><a href="https://snowtrace.io/tx/${txHash}" target="_blank" rel="noopener">${txHash}</a></div>
+      <p style="color:var(--red);font-size:0.85rem;">Confirmation check failed: ${err.message || err}</p>
+      <button class="tx-close-btn" onclick="closeTxOverlay()">Close</button>
+    `);
+  }
+}
+
+// Wait for transaction receipt (polling)
+async function waitForTx(txHash, maxAttempts = 60) {
+  for (let i = 0; i < maxAttempts; i++) {
+    const receipt = await window.ethereum.request({
+      method: "eth_getTransactionReceipt",
+      params: [txHash]
+    });
+    if (receipt) return receipt;
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  throw new Error("Transaction confirmation timeout");
 }
 
 // ============================================================
