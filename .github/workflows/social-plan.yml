@@ -16,8 +16,17 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install Pillow
+        run: pip install Pillow
+
       - name: Generate tomorrow's posts
         run: python social/generate-plan.py
+
+      - name: Generate banners for queued posts
+        run: python social/generate-banner.py
+
+      - name: Generate videos for queued posts
+        run: python social/generate-video.py
 
       - name: Create PR for review
         env:

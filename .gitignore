@@ -13,3 +13,6 @@ Thumbs.db
 *.swo
 *~
 .vscode/
+
+# Video temp frames
+social/.video_tmp/
