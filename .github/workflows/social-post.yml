@@ -1,0 +1,35 @@
+name: Post to X
+
+on:
+  schedule:
+    # Morning post (09:00 UTC)
+    - cron: '0 9 * * *'
+    # Afternoon post (15:00 UTC)
+    - cron: '0 15 * * *'
+  workflow_dispatch:
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Post next queued tweet
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+        run: python social/post.py
+
+      - name: Commit posted state
+        run: |
+          git config user.name "Second Hash Bot"
+          git config user.email "bot@secondhash.io"
+          git add social/queue/ social/posted/
+          git diff --cached --quiet || git commit -m "social: posted $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push

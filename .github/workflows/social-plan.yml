@@ -1,0 +1,42 @@
+name: Generate daily social plan
+
+on:
+  schedule:
+    # Run at 22:00 UTC daily (翌日分のプランを前夜に生成)
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate tomorrow's posts
+        run: python social/generate-plan.py
+
+      - name: Create PR for review
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="social/plan-$(date -u +%Y%m%d)"
+          git config user.name "Second Hash Bot"
+          git config user.email "bot@secondhash.io"
+          git checkout -b "$BRANCH"
+          git add social/queue/
+          git diff --cached --quiet && echo "No new posts to queue" && exit 0
+          git commit -m "social: queue posts for $(date -u -d '+1 day' +%Y-%m-%d 2>/dev/null || date -u -v+1d +%Y-%m-%d)"
+          git push origin "$BRANCH"
+          gh pr create \
+            --title "Social plan: $(date -u -d '+1 day' +%Y-%m-%d 2>/dev/null || date -u -v+1d +%Y-%m-%d)" \
+            --body "## Tomorrow's posts
+
+          Review the queued posts in \`social/queue/\`. Merge to approve, close to skip.
+
+          Generated automatically by Second Hash social planner." \
+            --base main \
+            --head "$BRANCH"
