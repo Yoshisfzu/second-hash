@@ -110,33 +110,30 @@ Comprehensive technical document covering the full product lineup, ecosystem ana
 ```
 second-hash/
 ├── README.md
-├── site/
-│   ├── index.html              # Product website
-│   ├── simulator.html          # Trade-In Simulator dApp
-│   └── images/                 # Product renders & branding
-│       ├── SH-R1_Reclaim.png
-│       ├── SH-R2_Reforge.png
-│       ├── SH-X1_Overhaul.png
-│       ├── SH-R3_Refit.png
-│       ├── SH-R4_Fuse.png
-│       ├── SH-X2_Apex.png
-│       ├── SH-B1_Patch.png
-│       ├── SH-B2_Splice.png
-│       ├── SH-B3_Overclock.png
-│       ├── SH-B4_Surge.png
-│       ├── SH-B5_Regulate.png
-│       ├── SH_Logo.png
-│       ├── X-Logo.png
-│       └── X-banner.png
-├── docs/
+├── site/                           # GitHub Pages website
+│   ├── index.html                  # Product landing page
+│   ├── simulator.html              # Trade-In Simulator dApp
+│   └── images/                     # Product renders & branding (11 products + logo)
+├── social/                         # X (Twitter) automation pipeline
+│   ├── generate-plan.py            # Daily content planner
+│   ├── generate-banner.py          # Category-aware banner engine (v2)
+│   ├── generate-video.py           # 7-second MP4 video generator
+│   ├── post.py                     # X API poster (image + video upload)
+│   ├── brand-voice.md              # Tone & vocabulary guide
+│   ├── content-calendar.md         # Weekly posting schedule
+│   ├── queue/                      # Pending posts (JSON + media)
+│   └── posted/                     # Archive of posted content
+├── agent-sdk/                      # Adventure.fun "Salvage" agent
+├── docs/                           # Whitepaper & analysis
 │   ├── Second_Hash_Whitepaper.pdf
 │   ├── project-overview.md
 │   ├── game-data-analysis.md
 │   └── product-roadmap-phase2-3.md
-└── visuals/
-    ├── ai-image-prompts.md
-    ├── phase2-image-prompts.md
-    └── x-account-setup.md
+├── visuals/                        # Image generation prompts
+└── .github/workflows/              # GitHub Actions
+    ├── social-plan.yml             # Daily plan + banner + video generation
+    ├── social-post.yml             # Scheduled posting (09:00/15:00 UTC)
+    └── post-pinned.yml             # Manual pinned post trigger
 ```
 
 ## Brand Identity
@@ -150,6 +147,21 @@ second-hash/
 | Body Font | Inter |
 | Tagline | "Every hash deserves a second chance." |
 
+### Social Automation Pipeline
+Fully automated X (Twitter) content system with GitHub Actions:
+
+- **[@SecondHashHQ](https://x.com/SecondHashHQ)** — Live X account with automated posting
+- **`social/generate-plan.py`** — Daily content generation with category mapping
+- **`social/generate-banner.py`** — Category-aware banner engine (6 visual styles: product, meme, philosophy, community, recap, launch)
+- **`social/generate-video.py`** — 7-second animated MP4 per post with easing animations, product zoom, typewriter text, bar charts
+- **`social/post.py`** — X API v2 posting with chunked video upload (v1.1)
+- **GitHub Actions** — Cron-based pipeline: plan generation (22:00 UTC) → PR review → auto-post (09:00/15:00 UTC)
+
+### Adventure.fun Agent Integration
+An NPC agent **"Salvage"** built on the Adventure.fun Agent SDK (Base chain), embodying the Second Hash philosophy in a dungeon-crawling RPG context — the cross-chain companion to our Avalanche hardware brand.
+
+**Location**: `agent-sdk/`
+
 ## Technical Notes
 
 - Both the website and simulator are single self-contained HTML files — no build tools, no dependencies, no frameworks
@@ -157,11 +169,15 @@ second-hash/
 - Wallet integration via `window.ethereum` (EIP-1193) supports MetaMask and Core Wallet on Avalanche C-Chain (chainId 43114)
 - On-chain assembly uses raw ABI encoding: ERC-20 `approve`, ERC-1155 `setApprovalForAll`, and Rig Assembler `assemble` calls
 - All product images are AI-generated photorealistic 3D renders with a unified visual style (warm amber gradient, copper rim lighting, brushed steel chassis)
+- Social content pipeline uses Pillow for banner generation and FFmpeg for video encoding — zero external API dependencies
 - The whitepaper PDF is generated programmatically with a dark theme matching the website aesthetic
 
 ## Links
 
 - [Club HashCash](https://hashcash.club)
+- [@SecondHashHQ on X](https://x.com/SecondHashHQ)
+- [Live Site](https://yoshisfzu.github.io/second-hash/)
+- [Trade-In Simulator](https://yoshisfzu.github.io/second-hash/simulator.html)
 
 ---
 
