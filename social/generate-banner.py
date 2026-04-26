@@ -496,6 +496,79 @@ def render_launch(img, draw, text, fonts):
     return img
 
 
+def render_teaser(img, draw, text, fonts):
+    """Teaser: Minimal, mysterious, pre-launch hype. Centered headline with scan-line effect."""
+    # Subtle scan-line effect (horizontal)
+    for y in range(0, HEIGHT, 4):
+        draw.line([(0, y), (WIDTH, y)], fill=(*BG_SECONDARY, 40), width=1)
+
+    # Glitch-style accent bars (random positions)
+    rng = random.Random(hash(text))
+    for _ in range(5):
+        gy = rng.randint(50, HEIGHT - 50)
+        gw = rng.randint(40, 200)
+        gx = rng.randint(0, WIDTH - gw)
+        gh = rng.randint(2, 4)
+        draw.rectangle([gx, gy, gx + gw, gy + gh], fill=(*ACCENT, rng.randint(15, 40)))
+
+    # Central glow (subtle, mysterious)
+    draw_glow(img, WIDTH // 2, HEIGHT // 2, 300, ACCENT, alpha=15)
+    draw = ImageDraw.Draw(img)
+
+    # Read headline/subline from post data or extract from text
+    all_lines = [l.strip() for l in text.split("\n") if l.strip() and not l.startswith("#") and not l.startswith("@")]
+    headline = all_lines[0] if all_lines else "..."
+    subline = all_lines[-1] if len(all_lines) > 1 else ""
+
+    # Large centered headline
+    font_big = load_font(FONT_BOLD, 52)
+    wrapped = textwrap.fill(headline, width=24)
+    lines = wrapped.split("\n")[:3]
+    total_h = len(lines) * 68
+    y_start = (HEIGHT - total_h) // 2 - 30
+
+    for line in lines:
+        bbox = draw.textbbox((0, 0), line, font=font_big)
+        tw = bbox[2] - bbox[0]
+        draw.text(((WIDTH - tw) // 2, y_start), line, fill=TEXT_PRIMARY, font=font_big)
+        y_start += 68
+
+    # Accent line below headline
+    draw.rectangle([(WIDTH // 2 - 50), y_start + 10, (WIDTH // 2 + 50), y_start + 13], fill=ACCENT)
+
+    # Subline below accent
+    if subline and subline != headline:
+        font_sub = load_font(FONT_REGULAR, 20)
+        bbox2 = draw.textbbox((0, 0), subline, font=font_sub)
+        tw2 = bbox2[2] - bbox2[0]
+        draw.text(((WIDTH - tw2) // 2, y_start + 30), subline, fill=TEXT_SECONDARY, font=font_sub)
+
+    # Corner accent marks (mysterious framing)
+    corner_len = 40
+    ct = 2
+    # Top-left
+    draw.line([(30, 30), (30 + corner_len, 30)], fill=ACCENT, width=ct)
+    draw.line([(30, 30), (30, 30 + corner_len)], fill=ACCENT, width=ct)
+    # Top-right
+    draw.line([(WIDTH - 30, 30), (WIDTH - 30 - corner_len, 30)], fill=ACCENT, width=ct)
+    draw.line([(WIDTH - 30, 30), (WIDTH - 30, 30 + corner_len)], fill=ACCENT, width=ct)
+    # Bottom-left
+    draw.line([(30, HEIGHT - 30), (30 + corner_len, HEIGHT - 30)], fill=ACCENT, width=ct)
+    draw.line([(30, HEIGHT - 30), (30, HEIGHT - 30 - corner_len)], fill=ACCENT, width=ct)
+    # Bottom-right
+    draw.line([(WIDTH - 30, HEIGHT - 30), (WIDTH - 30 - corner_len, HEIGHT - 30)], fill=ACCENT, width=ct)
+    draw.line([(WIDTH - 30, HEIGHT - 30), (WIDTH - 30, HEIGHT - 30 - corner_len)], fill=ACCENT, width=ct)
+
+    # #ClubHashCash tag bottom-center
+    font_tag = load_font(FONT_MONO, 13)
+    tag = "#ClubHashCash"
+    bbox3 = draw.textbbox((0, 0), tag, font=font_tag)
+    tw3 = bbox3[2] - bbox3[0]
+    draw.text(((WIDTH - tw3) // 2, HEIGHT - 50), tag, fill=TEXT_MUTED, font=font_tag)
+
+    return img
+
+
 # =============================================================
 # MAIN GENERATOR
 # =============================================================
@@ -507,6 +580,7 @@ RENDERERS = {
     "community": render_community,
     "recap": render_recap,
     "launch": render_launch,
+    "teaser": render_teaser,
 }
 
 
