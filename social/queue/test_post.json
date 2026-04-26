@@ -1,11 +1,5 @@
-{
-  "text": "Every hash deserves a second chance.\n\nSecond Hash is live. Refab vendor for dead Web3 hardware.\n\n#ClubHashCash #Hashathon @ClubHashcash",
-  "category": "launch",
-  "slot": "test"
-}
-EOcat > social/queue/test_post.json << 'EOF'
-{
-  "text": "Every hash deserves a second chance.\n\nSecond Hash is live. Refab vendor for dead Web3 hardware.\n\n#ClubHashCash #Hashathon @ClubHashcash",
-  "category": "launch",
-  "slot": "test"
-}
+{"text":"Every hash deserves a second chance.
+
+Second Hash is live. Refab vendor for dead Web3 hardware.
+
+#ClubHashCash #Hashathon @ClubHashcash","category":"launch","slot":"test"}
