@@ -1,0 +1,30 @@
+name: Post pinned launch tweet
+
+on:
+  workflow_dispatch:
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Post pinned launch tweet
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+        run: python social/post.py social/queue/pinned_launch.json
+
+      - name: Commit posted state
+        run: |
+          git config user.name "Second Hash Bot"
+          git config user.email "bot@secondhash.io"
+          git add social/queue/ social/posted/
+          git diff --cached --quiet || git commit -m "social: posted pinned launch tweet"
+          git push

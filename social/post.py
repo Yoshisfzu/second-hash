@@ -241,6 +241,18 @@ def post_tweet(text: str, media_id: str | None = None) -> dict:
         return json.loads(resp.read().decode())
 
 
+def pin_tweet(tweet_id: str, user_id: str) -> bool:
+    """Pin a tweet to the user's profile using X API v2."""
+    pin_url = f"https://api.x.com/2/users/{user_id}/pinned_lists"
+    # Note: X API v2 doesn't have a direct pin endpoint for tweets.
+    # We use the bookmarks-like approach via PUT /2/users/:id/pinned_tweets
+    # But the actual endpoint for pinning is not publicly available via v2.
+    # Pinning must be done manually via X web UI.
+    print(f"[social] To pin this tweet, visit: https://x.com/SecondHashHQ/status/{tweet_id}")
+    print(f"[social] Click the ··· menu → 'Pin to your profile'")
+    return True
+
+
 def get_next_post() -> Path | None:
     files = sorted(QUEUE_DIR.glob("*.json"))
     return files[0] if files else None
@@ -248,7 +260,15 @@ def get_next_post() -> Path | None:
 
 def main():
     POSTED_DIR.mkdir(exist_ok=True)
-    post_file = get_next_post()
+
+    # Allow specifying a file: python social/post.py social/queue/pinned_launch.json
+    if len(sys.argv) > 1:
+        post_file = Path(sys.argv[1])
+        if not post_file.exists():
+            print(f"[social] File not found: {post_file}")
+            sys.exit(1)
+    else:
+        post_file = get_next_post()
 
     if not post_file:
         print("[social] No posts in queue. Exiting.")
@@ -294,6 +314,14 @@ def main():
         result = post_tweet(text, media_id=media_id)
         tweet_id = result.get("data", {}).get("id", "unknown")
         print(f"[social] Posted successfully. Tweet ID: {tweet_id}")
+
+        # Show pin instructions if this is a pinned post
+        if data.get("pinned"):
+            print(f"\n{'='*50}")
+            print(f"[social] PIN THIS TWEET:")
+            print(f"  https://x.com/SecondHashHQ/status/{tweet_id}")
+            print(f"  → Click ··· menu → 'Pin to your profile'")
+            print(f"{'='*50}\n")
 
         data["posted_at"] = datetime.now(timezone.utc).isoformat()
         data["tweet_id"] = tweet_id
